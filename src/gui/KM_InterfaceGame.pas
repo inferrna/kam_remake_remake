@@ -3,7 +3,7 @@ unit KM_InterfaceGame;
 interface
 uses
   {$IFDEF MSWindows} Windows, {$ENDIF}
-  {$IFDEF Unix} LCLType, {$ENDIF}
+  {$IFDEF Unix} LCLIntF, LCLType, {$ENDIF}
   SysUtils, Classes, Math,
   Controls,
   KM_Defaults,

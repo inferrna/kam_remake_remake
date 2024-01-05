@@ -124,7 +124,7 @@ begin
   {$ELSE}
   Result := False;
   H := LoadLibrary('ntdll.dll');
-  if H > HINSTANCE_ERROR then
+  if H > {$IFDEF UNIX} 0 {$ELSE} HINSTANCE_ERROR {$ENDIF} then
   begin
     Result := Assigned(GetProcAddress(H, 'wine_get_version'));
     FreeLibrary(H);

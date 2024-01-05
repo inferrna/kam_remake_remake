@@ -328,7 +328,7 @@ begin
   SaveStream.Write(fSoundRemoveRequests.Count);
 
   keyArray := fSoundRemoveRequests.Keys.ToArray;
-  TArray.Sort<Integer>(keyArray);
+  // TArray.Sort<Integer>(keyArray);
   for key in keyArray do
   begin
     SaveStream.Write(key);

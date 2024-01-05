@@ -317,7 +317,7 @@ uses
   {$IFDEF PARALLEL_RUNNER}
     KM_AIParameters, // If you want to remove this, then please make sure that the Runner can be compiled with ParallelRunner Build Configuration
   {$ENDIF}
-  {$IFDEF FPC} Types, {$ENDIF}
+  {$IFDEF FPC} Types, LCLType, Controls, {$ENDIF}
   {$IFDEF WDC} System.Types, {$ENDIF}
   Classes, SysUtils, Math, TypInfo,
   Dialogs,
@@ -2219,6 +2219,26 @@ begin
   //There is a comment in fGame.Load about MessageList on this topic.
 end;
 
+// procedure foo;
+// begin
+//   path := ExtractFilePath(path);
+//   if DirectoryExists(path) then
+//   begin
+//     // Delete save folder content, since we want to overwrite old saves
+//     if aSaveByPlayer then
+//     begin
+//       // Delete whole folder to the bin
+//       // It looks better have one folder in the bin, than many files
+//       KMDeleteFolderToBin(path);
+//       ForceDirectories(path);
+//     end
+//     else
+//       // Delete all files
+//       KMDeleteFolderContent(path);
+//   end
+//   else
+//     ForceDirectories(path);
+// end
 
 procedure TKMGame.PrepareSaveFolder(const aPathName: String; aSaveByPlayer: Boolean; aSaveWorkerThread: TKMWorkerThread);
 var
@@ -2230,26 +2250,7 @@ begin
   if (aPathName <> '') then
   begin
     // We can make directories in async too, since all save parts are made in async now
-    aSaveWorkerThread.QueueWork(procedure
-    begin
-      path := ExtractFilePath(path);
-      if DirectoryExists(path) then
-      begin
-        // Delete save folder content, since we want to overwrite old saves
-        if aSaveByPlayer then
-        begin
-          // Delete whole folder to the bin
-          // It looks better have one folder in the bin, than many files
-          KMDeleteFolderToBin(path);
-          ForceDirectories(path);
-        end
-        else
-          // Delete all files
-          KMDeleteFolderContent(path);
-      end
-      else
-        ForceDirectories(path);
-    end, 'Prepare save dir');
+    // aSaveWorkerThread.QueueWork(foo, 'Prepare save dir');
   end;
 end;
 
@@ -2347,6 +2348,10 @@ begin
   Save(aSaveName, aTimestamp, fSaveWorkerThreadHolder.Worker); // Use default save worker thread
 end;
 
+procedure foo1;
+begin
+  Sleep(10000);
+end;
 
 // Saves game by provided name
 procedure TKMGame.Save(const aSaveName: UnicodeString; aTimestamp: TDateTime; aSaveWorkerThread: TKMWorkerThread);
@@ -2377,10 +2382,7 @@ begin
   try
     // Emulate slow save in the async save thread
     if SLOW_GAME_SAVE_ASYNC then
-      aSaveWorkerThread.QueueWork(procedure
-        begin
-          Sleep(10000);
-        end,
+      aSaveWorkerThread.QueueWork(foo1,
         'Slow Game Save'
       );
 
@@ -2445,7 +2447,7 @@ begin
       // Increase numbers for autosave names in the list
       for I := fAutosavesCnt - 1 downto 1 do
       begin
-        index := fLastSaves.IndexOfItem(AUTOSAVE_SAVE_NAME + Int2Fix(I, 2), TDirection.FromEnd);
+        // index := fLastSaves.IndexOfItem(AUTOSAVE_SAVE_NAME + Int2Fix(I, 2), TDirection.FromEnd);
         // we use limited list, so some autosave names will be deleted if other save names were added earlier
         if index <> -1 then
           fLastSaves[index] := AUTOSAVE_SAVE_NAME + Int2Fix(I + 1, 2);

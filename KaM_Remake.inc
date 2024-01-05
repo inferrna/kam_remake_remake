@@ -18,12 +18,17 @@
 {$IFDEF VER350} {$DEFINE WDC} {$ENDIF} //Define Windows Delphi 11 Alexandria
 {.$DEFINE FPC} //Define Free Pascal compiler (defined automatically by Lazarus)
 
-//Lazarus compiler specific settings
+// Lazarus compiler specific settings
 {$IFDEF FPC}
   //Set FPC to work in Delphi mode
   {$MODE Delphi}
+
   //allow advanced records in Lazarus
   {$modeSwitch advancedRecords}
+
+  // {$modeSwitch functionreferences}
+
+  // {$modeSwitch anonymousfunctions}
 
   //Currently FPC does not define UNICODE define because in Delphi it means more than just a
   //default string type but a full RTL implementation : using Windows 'W' functions instead of 'A',
@@ -31,6 +36,11 @@
   {$IFDEF FPC_UNICODESTRINGS}
     {$DEFINE UNICODE}
   {$ENDIF}
+
+  {$DEFINE NO_MUSIC}
+{$ELSE}
+  //Use secure authentication unit (KM_NetAuthSecure)
+  {$DEFINE USESECUREAUTH}
 {$ENDIF} 
 
 //Delphi compiler specific settings
@@ -46,9 +56,6 @@
   
   {$DEFINE USE_VIRTUAL_TREEVIEW}
 {$ENDIF}
-
-//Use secure authentication unit (KM_NetAuthSecure)
-{$DEFINE USESECUREAUTH}
 
 //Enable perflog (should be disabled for release / release candidate versions)
 {$DEFINE PERFLOG}

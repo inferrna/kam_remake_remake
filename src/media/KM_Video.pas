@@ -11,7 +11,7 @@ uses
   ;
 
 type
-  TKMVideoPlayerCallback = reference to procedure;
+  TKMVideoPlayerCallback = procedure;
 
   TKMVideoFileKind = (
     vfkNone,

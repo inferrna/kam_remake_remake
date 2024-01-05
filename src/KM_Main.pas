@@ -6,7 +6,11 @@ uses
   KM_FormMain, KM_FormLoading, KM_Maps,
   KM_MainSettings, KM_Resolutions, KM_Video,
   KM_WindowParams,
-  KM_GameAppSettings;
+  KM_GameAppSettings
+  {$IFDEF FPC}
+  , Types
+  {$ENDIF}
+  ;
 
 
 type
@@ -141,6 +145,7 @@ begin
 
   {$IFDEF PERFLOG}
   gPerfLogs := TKMPerfLogs.Create([], True);
+  {$IFDEF WDC}
   gPerfLogs.ShowForm(fFormMain.cpPerfLogs);
   gPerfLogs.OnFormChanged := fFormMain.OtherFormChanged;
 
@@ -148,6 +153,7 @@ begin
   fFormMain.cpPerfLogs.Collapsed := False; //We can set TCategoryPanel height only when collapsed set to False
   fFormMain.cpPerfLogs.Height := gPerfLogs.FormHeight;
   fFormMain.cpPerfLogs.Collapsed := collapsed; //Restore collapsed flag
+  {$ENDIF}
   {$ELSE}
   fFormMain.cpPerfLogs.Hide;
   {$ENDIF}
@@ -348,7 +354,7 @@ begin
                            ) = IDYES;
     {$ENDIF}
     {$IFDEF Unix}
-    CanClose := MessageDlg(gResTexts[TX_EXIT_WARN_MESSAGE], mtWarning, [mbYes, mbNo], 0) = mrYes;
+    // CanClose := MessageDlg(gResTexts[TX_EXIT_WARN_MESSAGE], mtWarning, [mbYes, mbNo], 0) = mrYes;
     {$ENDIF}
 
     //Resume the game

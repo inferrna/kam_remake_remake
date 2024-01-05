@@ -48,7 +48,11 @@ var
 
 implementation
 uses
-  SysUtils, INIfiles, Math, Forms;
+  SysUtils, INIfiles, Math
+  {$IFNDEF FPC}
+  , Forms
+  {$ENDIF}
+  ;
 
 const
   NO_RENDER_MAX_TIME_MIN = 10; //in ms
@@ -142,7 +146,7 @@ begin
 
   nMainSettings := Root.AddOrFindChild('Main');
   // Clear old data before filling in
-  nMainSettings.Clear;
+  // nMainSettings.Clear;
 
   // GFX
   nGFX := nMainSettings.AddOrFindChild('GFX');

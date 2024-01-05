@@ -13,7 +13,7 @@ uses
   {$IFDEF MSWindows}Windows, {$ENDIF}
   Forms
   {$IFDEF WDC}, ShellApi, PsAPI {$ENDIF}
-  {$IFDEF FPC}, JwaPsApi {$ENDIF}
+  {$IFDEF FPC}, LCLIntF {$ENDIF}
   ;
 
 
@@ -52,19 +52,19 @@ end;
 
 
 function GetMemUsed: NativeUInt;
-var
-  pmc: PPROCESS_MEMORY_COUNTERS;
-  cb: Integer;
+// var
+//   pmc: PPROCESS_MEMORY_COUNTERS;
+//   cb: Integer;
 begin
-  cb := SizeOf(_PROCESS_MEMORY_COUNTERS);
-  GetMem(pmc, cb);
-  pmc^.cb := cb;
-  if GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb) then
-    Result := pmc^.WorkingSetSize
-  else
+  // cb := SizeOf(_PROCESS_MEMORY_COUNTERS);
+  // GetMem(pmc, cb);
+  // pmc^.cb := cb;
+  // if GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb) then
+  //   Result := pmc^.WorkingSetSize
+  // else
     Result := 0;
 
-  FreeMem(pmc);
+  // FreeMem(pmc);
 end;
 
 

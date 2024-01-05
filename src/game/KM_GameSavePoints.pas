@@ -323,7 +323,7 @@ begin
     aSaveStream.Write(fSavePoints.Count);
 
     keyArray := fSavePoints.Keys.ToArray;
-    TArray.Sort<Cardinal>(keyArray);
+    // TArray.Sort<Cardinal>(keyArray);
 
     // todo: potential OutOfMemory error in this cycle
     for key in keyArray do

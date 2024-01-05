@@ -239,7 +239,7 @@ begin
   S := TStringList.Create;
 
   TicksArray := fTickTimes.Keys.ToArray;
-  TArray.Sort<Cardinal>(TicksArray);
+  // TArray.Sort<Cardinal>(TicksArray);
 
 //  Str := 'Tick   '; //7
   Str := '       ';
@@ -261,7 +261,7 @@ begin
     SectDict := fTickTimes.Items[TickKey];
 
     SectsArray := SectDict.Keys.ToArray;
-    TArray.Sort<TKMPerfSection>(SectsArray);
+    // TArray.Sort<TKMPerfSection>(SectsArray);
 
     FastTick := False;
     Str := Format('%6d:', [TickKey]);

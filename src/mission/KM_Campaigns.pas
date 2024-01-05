@@ -226,10 +226,10 @@ procedure TKMCampaignsCollection.SortCampaigns;
 var
   I, K: Integer;
 begin
-  for I := 0 to Count - 1 do
-    for K := I to Count - 1 do
-      if Compare(Campaigns[I], Campaigns[K]) then
-        SwapInt(NativeUInt(fList.List[I]), NativeUInt(fList.List[K]));
+  // for I := 0 to Count - 1 do
+  //   for K := I to Count - 1 do
+  //     if Compare(Campaigns[I], Campaigns[K]) then
+  //       SwapInt(NativeUInt(fList.List[I]), NativeUInt(fList.List[K]));
 end;
 
 
@@ -665,11 +665,17 @@ begin
   end;
 end;
 
-
 procedure TKMCampaign.LoadSprites;
 var
   SP: TKMSpritePack;
   firstSpriteIndex: Word;
+  procedure foo;
+  begin
+    //Images were successfully loaded
+    {$IFNDEF NO_OGL}
+    SP.MakeGFX(False, firstSpriteIndex);
+    {$ENDIF}
+  end;
 begin
   if gRes.Sprites  = nil then Exit;
   
@@ -683,14 +689,7 @@ begin
   if firstSpriteIndex <= SP.RXData.Count then
   begin
     // Make campaign sprite GFX in the main thread only
-    TThread.Synchronize(TThread.CurrentThread, procedure
-      begin
-        //Images were successfully loaded
-        {$IFNDEF NO_OGL}
-        SP.MakeGFX(False, firstSpriteIndex);
-        {$ENDIF}
-      end
-    );
+    // TThread.Synchronize(TThread.CurrentThread, foo);
 
     SP.ClearTemp;
     fBackGroundPic.RX := rxCustom;

@@ -135,7 +135,7 @@ begin
   SaveStream.PlaceMarker('AIGeneral_unitsEquipOrdered');
   SaveStream.Write(fUnitsEquipOrdered.Count);
   keyArray := fUnitsEquipOrdered.Keys.ToArray;
-  TArray.Sort<Integer>(keyArray);
+  // TArray.Sort<Integer>(keyArray);
 
   for uid in keyArray do
     SaveStream.Write(uid);

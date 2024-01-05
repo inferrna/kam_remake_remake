@@ -4,9 +4,9 @@ interface
 uses
   SysUtils, StrUtils, Classes, Math,
   ComCtrls, Controls, ExtCtrls, StdCtrls,
-  {$IFDEF MSWindows} Forms, Spin; {$ENDIF}
+  Forms, Spin,
+  ExpandPanels,
   {$IFDEF Unix} LCLIntf, LCLType; {$ENDIF}
-
 
 type
   TKMDebugFormState = ( fsNone,       // No debug panel or menu are open
@@ -20,14 +20,14 @@ type
 
     fDebugFormState: TKMDebugFormState; // State of the Debug form
 
-    fMainGroup: TCategoryPanelGroup;
-    fDontCollapse: TCategoryPanel;
+    fMainGroup: TExpandPanels;
+    fDontCollapse: TMyRollOut;
 
     procedure DoLoad;
     procedure DoSave;
-    function GetXmlSectionName(aPanel: TCategoryPanel): string;
+    function GetXmlSectionName(aPanel: TMyRollOut): string;
   public
-    constructor Create(const aExeDir: string; aMainGroup: TCategoryPanelGroup; aDontCollapse: TCategoryPanel);
+    constructor Create(const aExeDir: string; aMainGroup: TExpandPanels; aDontCollapse: TMyRollOut);
 
     property DebugFormState: TKMDebugFormState read fDebugFormState write fDebugFormState;
 
@@ -43,7 +43,7 @@ uses
 
 
 { TKMDevSettings }
-constructor TKMDevSettings.Create(const aExeDir: string; aMainGroup: TCategoryPanelGroup; aDontCollapse: TCategoryPanel);
+constructor TKMDevSettings.Create(const aExeDir: string; aMainGroup: TExpandPanels; aDontCollapse: TMyRollOut);
 begin
   inherited Create;
 
@@ -54,7 +54,7 @@ begin
 end;
 
 
-function TKMDevSettings.GetXmlSectionName(aPanel: TCategoryPanel): string;
+function TKMDevSettings.GetXmlSectionName(aPanel: TMyRollOut): string;
 begin
   Result := StringReplace(aPanel.Caption, ' ', '_', [rfReplaceAll]);
 end;
@@ -108,8 +108,8 @@ procedure TKMDevSettings.DoLoad;
 var
   I: Integer;
   newXML: TKMXMLDocument;
-  cp: TCategoryPanel;
-  cpSurface: TCategoryPanelSurface;
+  cp: TMyRollOut;
+  // cpSurface: TCategoryPanelSurface;
   cpName: string;
   nRoot, nDebugForm, nSection: TKMXmlNode;
 begin
@@ -120,8 +120,8 @@ begin
   // Apply default settings
   if not FileExists(fSettingsPath) then
   begin
-    for I := 0 to fMainGroup.Panels.Count - 1 do
-      TCategoryPanel(fMainGroup.Panels[I]).Collapsed := True;
+    for I := 0 to fMainGroup.Count - 1 do
+      TMyRollOut(fMainGroup.Panel(I)).Collapsed := True;
 
     fDontCollapse.Collapsed := False; //The only not collapsed section
     Exit;
@@ -135,9 +135,9 @@ begin
   nDebugForm := nRoot.AddOrFindChild('DebugForm');
   fDebugFormState := TKMDebugFormState(nDebugForm.Attributes['State'].AsInteger(0));
 
-  for I := 0 to fMainGroup.Panels.Count - 1 do
+  for I := 0 to fMainGroup.Count - 1 do
   begin
-    cp := TCategoryPanel(fMainGroup.Panels[I]);
+    cp := TMyRollOut(fMainGroup.Panel(I));
     cpName := GetXmlSectionName(cp);
 
     if nDebugForm.HasChild(cpName) then
@@ -145,10 +145,10 @@ begin
       nSection := nDebugForm.FindNode(cpName);
       cp.Collapsed := nSection.Attributes['Collapsed'].AsBoolean(True);
 
-      if (cp.ControlCount > 0) and (cp.Controls[0] is TCategoryPanelSurface) then
+      if (cp.ControlCount > 0) and (True{cp.Controls[0] is TCategoryPanelSurface}) then
       begin
-        cpSurface := TCategoryPanelSurface(cp.Controls[0]);
-        LoadSubPanel(cpSurface, nSection);
+        // cpSurface := TCategoryPanelSurface(cp.Controls[0]);
+        // LoadSubPanel(cpSurface, nSection);
       end;
     end;
   end;
@@ -204,8 +204,8 @@ procedure TKMDevSettings.DoSave;
 var
   I: Integer;
   newXML: TKMXMLDocument;
-  cp: TCategoryPanel;
-  cpSurface: TCategoryPanelSurface;
+  cp: TMyRollOut;
+  // cpSurface: TCategoryPanelSurface;
   nRoot, nDebugForm, nSection: TKMXmlNode;
 begin
   if Self = nil then Exit;
@@ -220,18 +220,18 @@ begin
   nDebugForm := nRoot.AddOrFindChild('DebugForm');
   nDebugForm.Attributes['State'] := Ord(fDebugFormState);
 
-  for I := 0 to fMainGroup.Panels.Count - 1 do
+  for I := 0 to fMainGroup.Count - 1 do
   begin
-    cp := TCategoryPanel(fMainGroup.Panels[I]);
+    cp := TMyRollOut(fMainGroup.Panel(I));
 
     nSection := nDebugForm.AddOrFindChild(GetXmlSectionName(cp));
 
     nSection.Attributes['Collapsed'] := cp.Collapsed;
 
-    if (cp.ControlCount > 0) and (cp.Controls[0] is TCategoryPanelSurface) then
+    if (cp.ControlCount > 0) and (True{cp.Controls[0] is TCategoryPanelSurface}) then
     begin
-      cpSurface := TCategoryPanelSurface(cp.Controls[0]);
-      SaveSubPanel(cpSurface, nSection);
+      // cpSurface := TCategoryPanelSurface(cp.Controls[0]);
+      // SaveSubPanel(cpSurface, nSection);
     end;
   end;
 

@@ -5,12 +5,13 @@ uses
   SysUtils, StrUtils, Classes, Math,
   ComCtrls, Controls, Buttons, Dialogs, ExtCtrls, Forms, Graphics, Menus, StdCtrls,
   KM_RenderControl, KM_CommonTypes,
-  KM_WindowParams, KM_SettingsDev, KM_GameTypes,
+  // KM_SettingsDev,
+  KM_WindowParams, KM_GameTypes,
   KM_Defaults, KM_ResExporter,
   {$IFDEF FPC} LResources, Spin, {$ENDIF}
   {$IFNDEF FPC} Vcl.Samples.Spin, {$ENDIF}  // For some unnown reason Delphi auto add Vcl.Samples.Spin when use {$IFDEF WDC}
   {$IFDEF MSWindows} KM_VclMenuHint, ShellAPI, Windows, Messages; {$ENDIF}
-  {$IFDEF Unix} LCLIntf, LCLType; {$ENDIF}
+  {$IFDEF Unix} ExpandPanels, LCLIntf, LCLType; {$ENDIF}
 
 
 type
@@ -208,14 +209,14 @@ type
     chkLogUpdateForGUI: TCheckBox;
     chkCursorCoordinates: TCheckBox;
     chkInterpolatedAnims: TCheckBox;
-    cpDebugOutput: TCategoryPanel;
+    cpDebugOutput: TMyRollOut;
     chkUIDs: TCheckBox;
     chkSelectedObjInfo: TCheckBox;
     chkHands: TCheckBox;
     chkGIP: TCheckBox;
     chkShowFPS: TCheckBox;
     chkShowGameTick: TCheckBox;
-    CategoryPanel1: TCategoryPanel;
+    CategoryPanel1: TMyRollOut;
     chkShowTerrainIds: TCheckBox;
     chkShowTerrainKinds: TCheckBox;
     chkTilesGrid: TCheckBox;
@@ -355,7 +356,7 @@ type
     {$IFDEF MSWindows}
     fMenuItemHint: TKMVclMenuItemHint; // Custom hint over menu item
     {$ENDIF}
-    fDevSettings: TKMDevSettings;
+    // fDevSettings: TKMDevSettings;
     fStartVideoPlayed: Boolean;
     fUpdating: Boolean;
     fMissionDefOpenPath: UnicodeString;
@@ -459,7 +460,7 @@ end;
 //Remove VCL panel and use flicker-free TMyPanel instead
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
-  Application.OnMessage := DoMessage;
+  // Application.OnMessage := DoMessage;
 
   fStartVideoPlayed := False;
   RenderArea := TKMRenderControl.Create(Self);
@@ -496,14 +497,14 @@ begin
   mainGroup.BringToFront;
   {$ENDIF}
 
-  chkShowFlatTerrain.Tag := Ord(dcFlatTerrain);
-  tbWaterLight.Tag := Ord(dcFlatTerrain);
+  // chkShowFlatTerrain.Tag := Ord(dcFlatTerrain);
+  // tbWaterLight.Tag := Ord(dcFlatTerrain);
 
-  fDevSettings := TKMDevSettings.Create(ExeDir, mainGroup, cpGameControls);
+  // fDevSettings := TKMDevSettings.Create(ExeDir, mainGroup, cpGameControls);
 
   fUpdating := True;
   try
-    fDevSettings.Load;
+    // fDevSettings.Load;
   finally
     fUpdating := False;
   end;
@@ -518,7 +519,7 @@ begin
   fMenuItemHint.Free;
   {$ENDIF}
 
-  FreeAndNil(fDevSettings);
+  // FreeAndNil(fDevSettings);
   FreeAndNil(fResExporter);
 end;
 
@@ -596,17 +597,17 @@ procedure TFormMain.FormKeyDownProc(aKey: Word; aShift: TShiftState; aIsFirst: B
 begin
   if aKey = gResKeys[kfDebugWindow] then
   begin
-    case fDevSettings.DebugFormState of
-      fsNone  :     if (ssCtrl in aShift) then
-                      fDevSettings.DebugFormState := fsDebugMenu //Hide groupbox when Ctrl is pressed
-                    else
-                      fDevSettings.DebugFormState := fsDebugFull;
-      fsDebugMenu:  fDevSettings.DebugFormState := fsDebugFull;
-      fsDebugFull:  fDevSettings.DebugFormState := fsNone;
-    end;
+    // case fDevSettings.DebugFormState of
+    //   fsNone  :     if (ssCtrl in aShift) then
+    //                   fDevSettings.DebugFormState := fsDebugMenu //Hide groupbox when Ctrl is pressed
+    //                 else
+    //                   fDevSettings.DebugFormState := fsDebugFull;
+    //   fsDebugMenu:  fDevSettings.DebugFormState := fsDebugFull;
+    //   fsDebugFull:  fDevSettings.DebugFormState := fsNone;
+    // end;
 
     UpdateFormState;
-    fDevSettings.Save;
+    // fDevSettings.Save;
   end;
 
   if gGameApp <> nil then
@@ -703,7 +704,7 @@ end;
 
 procedure TFormMain.RenderAreaResize(aWidth, aHeight: Integer);
 begin
-  gMain.Resize(aWidth, aHeight, GetWindowParams);
+  // gMain.Resize(aWidth, aHeight, GetWindowParams);
 end;
 
 
@@ -1122,7 +1123,7 @@ end;
 
 procedure TFormMain.btFindObjByUIDClick(Sender: TObject);
 begin
-  FindObjByUID(seFindObjByUID.Value);
+  // FindObjByUID(seFindObjByUID.Value);
 end;
 
 
@@ -1263,34 +1264,34 @@ begin
   if SkipReset(aCtrl) then Exit; //Skip reset for some controls
 
   if aCtrl is TCheckBox then
-    TCheckBox(aCtrl).Checked :=   (aCtrl = chkBevel)
-                               or (aCtrl = chkLogNetConnection)
-                               or (aCtrl = chkLogSkipTempCmd)
-                               or ((aCtrl = chkSnowHouses) and gGameSettings.GFX.AllowSnowHouses)
-                               or ((aCtrl = chkInterpolatedRender) and gGameSettings.GFX.InterpolatedRender)
-                               or ((aCtrl = chkInterpolatedAnims) and gGameSettings.GFX.InterpolatedAnimations)
-                               or (aCtrl = chkShowObjects)
-                               or (aCtrl = chkShowHouses)
-                               or (aCtrl = chkShowUnits)
-                               or (aCtrl = chkShowOverlays)
-                               or (aCtrl = chkTerrainRenderAnim)
-                               or (aCtrl = chkTerrainRenderLight)
-                               or (aCtrl = chkTerrainRenderShadow)
-                               or (aCtrl = chkDebugLayerBase)
-                               or (aCtrl = chkDebugLayer1)
-                               or (aCtrl = chkDebugLayer2)
-                               or (aCtrl = chkDebugLayer3)
+    // TCheckBox(aCtrl).Checked :=   (aCtrl = chkBevel)
+    //                            or (aCtrl = chkLogNetConnection)
+    //                            or (aCtrl = chkLogSkipTempCmd)
+    //                            or ((aCtrl = chkSnowHouses) and gGameSettings.GFX.AllowSnowHouses)
+    //                            or ((aCtrl = chkInterpolatedRender) and gGameSettings.GFX.InterpolatedRender)
+    //                            or ((aCtrl = chkInterpolatedAnims) and gGameSettings.GFX.InterpolatedAnimations)
+    //                            or (aCtrl = chkShowObjects)
+    //                            or (aCtrl = chkShowHouses)
+    //                            or (aCtrl = chkShowUnits)
+    //                            or (aCtrl = chkShowOverlays)
+    //                            or (aCtrl = chkTerrainRenderAnim)
+    //                            or (aCtrl = chkTerrainRenderLight)
+    //                            or (aCtrl = chkTerrainRenderShadow)
+    //                            or (aCtrl = chkDebugLayerBase)
+    //                            or (aCtrl = chkDebugLayer1)
+    //                            or (aCtrl = chkDebugLayer2)
+    //                            or (aCtrl = chkDebugLayer3)
   else
   if aCtrl is TTrackBar then
   begin
-    if aCtrl = tbWaterLight then
-      TTrackBar(aCtrl).Position := Round(DEFAULT_WATER_LIGHT_MULTIPLIER * 100)
-    else
-      TTrackBar(aCtrl).Position := 0
+    // if aCtrl = tbWaterLight then
+    //   TTrackBar(aCtrl).Position := Round(DEFAULT_WATER_LIGHT_MULTIPLIER * 100)
+    // else
+    //   TTrackBar(aCtrl).Position := 0
   end
   else
   if (aCtrl is TRadioGroup)
-    and (aCtrl <> rgDebugFont) then
+    and (False{ aCtrl <> rgDebugFont }) then
     TRadioGroup(aCtrl).ItemIndex := 0
   else
   if (aCtrl is TSpinEdit) then
@@ -1345,10 +1346,10 @@ procedure TFormMain.ControlsReset;
   begin
     for I := 0 to aBox.ControlCount - 1 do
     begin
-      if SkipReset(aBox.Controls[I]) then Continue; //Skip reset for some controls
+      // if SkipReset(aBox.Controls[I]) then Continue; //Skip reset for some controls
 
       if aBox.Controls[I] is TCheckBox then
-        TCheckBox(aBox.Controls[I]).Checked :=    (aBox.Controls[I] = chkBevel)
+        TCheckBox(aBox.Controls[I]).Checked :=    (aBox.Controls[I] = nil{ chkBevel })
                                                or (aBox.Controls[I] = chkLogNetConnection)
       else
       if aBox.Controls[I] is TTrackBar then
@@ -1384,7 +1385,7 @@ end;
 
 procedure TFormMain.OtherFormChanged;
 begin
-  fDevSettings.Save;
+  // fDevSettings.Save;
 end;
 
 
@@ -1398,11 +1399,12 @@ end;
 
 function TFormMain.AllowFindObjByUID: Boolean;
 begin
-  Result := // Update values only if Debug panel is opened or if we are debugging
-        (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
-          or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
-        and chkFindObjByUID.Checked     // and checkbox is checked
-        and gMain.IsDebugChangeAllowed; // and not in MP
+  Result := False
+  // Result := // Update values only if Debug panel is opened or if we are debugging
+  //       (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
+  //         or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
+  //       and chkFindObjByUID.Checked     // and checkbox is checked
+  //       and gMain.IsDebugChangeAllowed; // and not in MP
 end;
 
 
@@ -1410,17 +1412,17 @@ procedure TFormMain.SetEntitySelected(aEntityUID: Integer; aEntity2UID: Integer)
 begin
   if not AllowFindObjByUID then Exit;
 
-  seEntityUID.SetValueWithoutChange(aEntityUID);
-  seWarriorUID.SetValueWithoutChange(aEntity2UID);
+  // seEntityUID.SetValueWithoutChange(aEntityUID);
+  // seWarriorUID.SetValueWithoutChange(aEntity2UID);
 
   if GetKeyState(VK_MENU) < 0 then
-    seFindObjByUID.Value := aEntityUID // will trigger OnChange
+    // seFindObjByUID.Value := aEntityUID // will trigger OnChange
   else
   if GetKeyState(VK_SHIFT) < 0 then
   begin
     if aEntity2UID = UID_NONE then
       aEntity2UID := aEntityUID;
-    seFindObjByUID.Value := aEntity2UID; // will trigger OnChange
+    // seFindObjByUID.Value := aEntity2UID; // will trigger OnChange
   end
 end;
 
@@ -1456,27 +1458,27 @@ begin
     chkShowWires.       SetCheckedWithoutClick(SHOW_TERRAIN_WIRES);
     chkShowTerrainIds.  SetCheckedWithoutClick(SHOW_TERRAIN_IDS);
     chkShowTerrainKinds.SetCheckedWithoutClick(SHOW_TERRAIN_KINDS);
-    chkTilesGrid.       SetCheckedWithoutClick(SHOW_TERRAIN_TILES_GRID);
-    chkTileOwner.       SetCheckedWithoutClick(SHOW_TILES_OWNER);
-    chkTileObject.      SetCheckedWithoutClick(SHOW_TILE_OBJECT_ID);
-    chkTreeAge.         SetCheckedWithoutClick(SHOW_TREE_AGE);
-    chkFieldAge.        SetCheckedWithoutClick(SHOW_FIELD_AGE);
-    chkTileLock.        SetCheckedWithoutClick(SHOW_TILE_LOCK);
-    chkTileUnit.        SetCheckedWithoutClick(SHOW_TILE_UNIT);
-    chkVertexUnit.      SetCheckedWithoutClick(SHOW_VERTEX_UNIT);
+    // chkTilesGrid.       SetCheckedWithoutClick(SHOW_TERRAIN_TILES_GRID);
+    // chkTileOwner.       SetCheckedWithoutClick(SHOW_TILES_OWNER);
+    // chkTileObject.      SetCheckedWithoutClick(SHOW_TILE_OBJECT_ID);
+    // chkTreeAge.         SetCheckedWithoutClick(SHOW_TREE_AGE);
+    // chkFieldAge.        SetCheckedWithoutClick(SHOW_FIELD_AGE);
+    // chkTileLock.        SetCheckedWithoutClick(SHOW_TILE_LOCK);
+    // chkTileUnit.        SetCheckedWithoutClick(SHOW_TILE_UNIT);
+    // chkVertexUnit.      SetCheckedWithoutClick(SHOW_VERTEX_UNIT);
     chkShowRoutes.      SetCheckedWithoutClick(SHOW_UNIT_ROUTES);
     chkShowRoutesSteps. SetCheckedWithoutClick(SHOW_UNIT_ROUTES_STEPS);
     chkSelectionBuffer. SetCheckedWithoutClick(SHOW_SEL_BUFFER);
 
-    chkShowObjects.     SetCheckedWithoutClick(mlObjects            in gGameParams.VisibleLayers);
-    chkShowHouses.      SetCheckedWithoutClick(mlHouses             in gGameParams.VisibleLayers);
-    chkShowUnits.       SetCheckedWithoutClick(mlUnits              in gGameParams.VisibleLayers);
-    chkShowOverlays.    SetCheckedWithoutClick(mlOverlays           in gGameParams.VisibleLayers);
-    chkShowMiningRadius.SetCheckedWithoutClick(mlMiningRadius       in gGameParams.VisibleLayers);
-    chkShowTowerRadius. SetCheckedWithoutClick(mlTowersAttackRadius in gGameParams.VisibleLayers);
-    chkShowUnitRadius.  SetCheckedWithoutClick(mlUnitsAttackRadius  in gGameParams.VisibleLayers);
-    chkShowDefencePos.  SetCheckedWithoutClick(mlDefencesAll        in gGameParams.VisibleLayers);
-    chkShowFlatTerrain. SetCheckedWithoutClick(mlFlatTerrain        in gGameParams.VisibleLayers);
+    // chkShowObjects.     SetCheckedWithoutClick(mlObjects            in gGameParams.VisibleLayers);
+    // chkShowHouses.      SetCheckedWithoutClick(mlHouses             in gGameParams.VisibleLayers);
+    // chkShowUnits.       SetCheckedWithoutClick(mlUnits              in gGameParams.VisibleLayers);
+    // chkShowOverlays.    SetCheckedWithoutClick(mlOverlays           in gGameParams.VisibleLayers);
+    // chkShowMiningRadius.SetCheckedWithoutClick(mlMiningRadius       in gGameParams.VisibleLayers);
+    // chkShowTowerRadius. SetCheckedWithoutClick(mlTowersAttackRadius in gGameParams.VisibleLayers);
+    // chkShowUnitRadius.  SetCheckedWithoutClick(mlUnitsAttackRadius  in gGameParams.VisibleLayers);
+    // chkShowDefencePos.  SetCheckedWithoutClick(mlDefencesAll        in gGameParams.VisibleLayers);
+    // chkShowFlatTerrain. SetCheckedWithoutClick(mlFlatTerrain        in gGameParams.VisibleLayers);
   finally
     fUpdating := False;
   end;
@@ -1488,25 +1490,25 @@ var
   I: Integer;
   showCtrls, showGroupBox: Boolean;
 begin
-  case fDevSettings.DebugFormState of
-    fsNone:       begin
-                    showCtrls := False;
-                    showGroupBox := False;
-                  end;
-    fsDebugMenu:  begin
-                    showCtrls := True;
-                    showGroupBox := False;
-                  end;
-    fsDebugFull:  begin
-                    showCtrls := True;
-                    showGroupBox := True;
-                  end;
-    else
-    begin
+  // case fDevSettings.DebugFormState of
+  //   fsNone:       begin
+  //                   showCtrls := False;
+  //                   showGroupBox := False;
+  //                 end;
+  //   fsDebugMenu:  begin
+  //                   showCtrls := True;
+  //                   showGroupBox := False;
+  //                 end;
+  //   fsDebugFull:  begin
+  //                   showCtrls := True;
+  //                   showGroupBox := True;
+  //                 end;
+  //   else
+  //   begin
       showCtrls := False;
       showGroupBox := False;
-    end;
-  end;
+  //   end;
+  // end;
 
 
   Refresh;
@@ -1529,7 +1531,7 @@ begin
   RenderArea.Top    := 0;
   RenderArea.Height := ClientHeight;
   RenderArea.Width  := ClientWidth;
-  gMain.Resize(RenderArea.Width, RenderArea.Height, GetWindowParams);
+  // gMain.Resize(RenderArea.Width, RenderArea.Height, GetWindowParams);
 end;
 
 
@@ -1646,10 +1648,10 @@ begin
 
     SKIP_RENDER := chkSkipRender.Checked;
     SKIP_SOUND := chkSkipSound.Checked;
-    DISPLAY_SOUNDS := chkPaintSounds.Checked;
+    // DISPLAY_SOUNDS := chkPaintSounds.Checked;
     SHOW_VIEWPORT_POS := chkViewportPos.Checked;
 
-    gbFindObjByUID.Enabled := chkFindObjByUID.Checked;
+    // gbFindObjByUID.Enabled := chkFindObjByUID.Checked;
 
     if AllowFindObjByUID then
       btFindObjByUIDClick(nil)
@@ -1662,15 +1664,15 @@ begin
   begin
     SHOW_AI_WARE_BALANCE := chkShowBalance.Checked;
     OVERLAY_DEFENCES := chkShowDefences.Checked;
-    OVERLAY_DEFENCES_A := chkShowDefencesAnimate.Checked;
+    // OVERLAY_DEFENCES_A := chkShowDefencesAnimate.Checked;
     OVERLAY_AI_BUILD := chkBuild.Checked;
     OVERLAY_AI_COMBAT := chkCombat.Checked;
-    OVERLAY_AI_PATHFINDING := chkPathfinding.Checked;
-    OVERLAY_AI_SUPERVISOR := chkSupervisor.Checked;
-    OVERLAY_AI_VEC_FLD_ENEM := chkShowArmyVectorFieldEnemy.Checked;
-    OVERLAY_AI_VEC_FLD_ALLY := chkShowArmyVectorFieldAlly.Checked;
-    OVERLAY_AI_CLUSTERS := chkShowClusters.Checked;
-    OVERLAY_AI_ALLIEDGROUPS := chkShowAlliedGroups.Checked;
+    // OVERLAY_AI_PATHFINDING := chkPathfinding.Checked;
+    // OVERLAY_AI_SUPERVISOR := chkSupervisor.Checked;
+    // OVERLAY_AI_VEC_FLD_ENEM := chkShowArmyVectorFieldEnemy.Checked;
+    // OVERLAY_AI_VEC_FLD_ALLY := chkShowArmyVectorFieldAlly.Checked;
+    // OVERLAY_AI_CLUSTERS := chkShowClusters.Checked;
+    // OVERLAY_AI_ALLIEDGROUPS := chkShowAlliedGroups.Checked;
     OVERLAY_AI_EYE := chkAIEye.Checked;
     OVERLAY_AI_SOIL := chkShowSoil.Checked;
     OVERLAY_AI_FLATAREA := chkShowFlatArea.Checked;
@@ -1689,9 +1691,9 @@ begin
   SHOW_CONTROLS_OVERLAY := chkUIControlsBounds.Checked;
   SHOW_TEXT_OUTLINES := chkUITextBounds.Checked;
   SHOW_CONTROLS_ID := chkUIControlsID.Checked;
-  SHOW_FOCUSED_CONTROL := chkUIFocusedControl.Checked;
-  SHOW_CONTROL_OVER := chkUIControlOver.Checked;
-  SKIP_RENDER_TEXT := chkSkipRenderText.Checked;
+  // SHOW_FOCUSED_CONTROL := chkUIFocusedControl.Checked;
+  // SHOW_CONTROL_OVER := chkUIControlOver.Checked;
+  // SKIP_RENDER_TEXT := chkSkipRenderText.Checked;
   DBG_UI_HINT_POS := chkCursorCoordinates.Checked;
 
   {$IFDEF WDC} // one day update .lfm for lazarus...
@@ -1717,8 +1719,8 @@ begin
     end;
     HOUSE_BUILDING_STEP := tbBuildingStep.Position / tbBuildingStep.Max;
 
-    WATER_LIGHT_MULTIPLIER := tbWaterLight.Position / 100;
-    lblWaterLight.Caption := 'Water light x' + ReplaceStr(FormatFloat('0.##', WATER_LIGHT_MULTIPLIER), ',', '.');
+    // WATER_LIGHT_MULTIPLIER := tbWaterLight.Position / 100;
+    // lblWaterLight.Caption := 'Water light x' + ReplaceStr(FormatFloat('0.##', WATER_LIGHT_MULTIPLIER), ',', '.');
   end;
 
   //Logs
@@ -1777,8 +1779,8 @@ begin
   //Misc
   if allowDebugChange then
   begin
-    SHOW_DEBUG_OVERLAY_BEVEL := chkBevel.Checked;
-    DEBUG_TEXT_FONT_ID := rgDebugFont.ItemIndex;
+    // SHOW_DEBUG_OVERLAY_BEVEL := chkBevel.Checked;
+    // DEBUG_TEXT_FONT_ID := rgDebugFont.ItemIndex;
   end;
 
   if gGameApp.Game <> nil then
@@ -1791,13 +1793,13 @@ begin
   if Assigned(fOnControlsUpdated) and (Sender is TControl) then
     fOnControlsUpdated(Sender, TControl(Sender).Tag);
 
-  fDevSettings.Save;
+  // fDevSettings.Save;
 end;
 
 
 procedure TFormMain.cpCollapseChanged(Sender: TObject);
 begin
-  fDevSettings.Save;
+  // fDevSettings.Save;
 end;
 
 
@@ -1817,53 +1819,53 @@ end;
 procedure TFormMain.ShowInWindow;
 begin
   if gMainSettings.WindowParams.NeedResetToDefaults then
-    ShowInDefaultWindow
+    // ShowInDefaultWindow
   else
-    ShowInCustomWindow;
+    // ShowInCustomWindow;
 end;
 
 
-procedure TFormMain.ShowInCustomWindow;
-begin
-  BorderStyle  := bsSizeable;
-  WindowState  := wsNormal;
+// procedure TFormMain.ShowInCustomWindow;
+// begin
+//   BorderStyle  := bsSizeable;
+//   WindowState  := wsNormal;
 
-  // Here we set window Width/Height and State
-  // Left and Top will set on FormShow, so omit setting them here
-  Position     := gMainSettings.WindowParams.Position;
-  ClientWidth  := gMainSettings.WindowParams.Width;
-  ClientHeight := gMainSettings.WindowParams.Height;
-  Left := gMainSettings.WindowParams.Left;
-  Top := gMainSettings.WindowParams.Top;
-  WindowState  := gMainSettings.WindowParams.State;
+//   // Here we set window Width/Height and State
+//   // Left and Top will set on FormShow, so omit setting them here
+//   Position     := gMainSettings.WindowParams.Position;
+//   ClientWidth  := gMainSettings.WindowParams.Width;
+//   ClientHeight := gMainSettings.WindowParams.Height;
+//   Left := gMainSettings.WindowParams.Left;
+//   Top := gMainSettings.WindowParams.Top;
+//   WindowState  := gMainSettings.WindowParams.State;
 
-  gLog.AddTime('Set window params to: '
-              + gMainSettings.WindowParams.ObjToString);
+//   gLog.AddTime('Set window params to: '
+//               + gMainSettings.WindowParams.ObjToString);
 
-  //Make sure Panel is properly aligned
-  RenderArea.Align := alClient;
-end;
+//   //Make sure Panel is properly aligned
+//   RenderArea.Align := alClient;
+// end;
 
 
-procedure TFormMain.ShowInDefaultWindow;
-begin
-  BorderStyle  := bsSizeable;
-  WindowState  := wsNormal;
+// procedure TFormMain.ShowInDefaultWindow;
+// begin
+//   BorderStyle  := bsSizeable;
+//   WindowState  := wsNormal;
 
-  Position := poScreenCenter;
-  ClientWidth  := MENU_DESIGN_X;
-  ClientHeight := MENU_DESIGN_Y;
-  // We've set default window params, so update them
-  gMain.UpdateWindowParams(GetWindowParams);
-  // Unset NeedResetToDefaults flag
-  gMainSettings.WindowParams.NeedResetToDefaults := False;
+//   Position := poScreenCenter;
+//   ClientWidth  := MENU_DESIGN_X;
+//   ClientHeight := MENU_DESIGN_Y;
+//   // We've set default window params, so update them
+//   gMain.UpdateWindowParams(GetWindowParams);
+//   // Unset NeedResetToDefaults flag
+//   gMainSettings.WindowParams.NeedResetToDefaults := False;
 
-  gLog.AddTime(Format('Set window params to: Position = poScreenCenter Width = %d, Height = %d',
-                      [gMainSettings.WindowParams.Width, gMainSettings.WindowParams.Height]));
+//   gLog.AddTime(Format('Set window params to: Position = poScreenCenter Width = %d, Height = %d',
+//                       [gMainSettings.WindowParams.Width, gMainSettings.WindowParams.Height]));
 
-  //Make sure Panel is properly aligned
-  RenderArea.Align := alClient;
-end;
+//   //Make sure Panel is properly aligned
+//   RenderArea.Align := alClient;
+// end;
 
 
 //function TFormMain.ConfirmExport: Boolean;
@@ -1918,80 +1920,80 @@ begin
 end;
 
 
-// Return current window params
-function TFormMain.GetWindowParams: TKMWindowParamsRecord;
-  // FindTaskBar returns the Task Bar's position, and fills in
-  // ARect with the current bounding rectangle.
-  function FindTaskBar(var aRect: TRect): Integer;
-  {$IFDEF MSWINDOWS}
-  var	AppData: TAppBarData;
-  {$ENDIF}
-  begin
-    Result := -1;
-    {$IFDEF MSWINDOWS}
-    // 'Shell_TrayWnd' is the name of the task bar's window
-    AppData.Hwnd := FindWindow('Shell_TrayWnd', nil);
-    if AppData.Hwnd <> 0 then
-    begin
-      AppData.cbSize := SizeOf(TAppBarData);
-      // SHAppBarMessage will return False (0) when an error happens.
-      if SHAppBarMessage(ABM_GETTASKBARPOS,
-        {$IFDEF FPC}@AppData{$ENDIF}
-        {$IFDEF WDC}AppData{$ENDIF}
-        ) <> 0 then
-      begin
-        Result := AppData.uEdge;
-        aRect := AppData.rc;
-      end;
-    end;
-    {$ENDIF}
-  end;
-var
-  wp: TWindowPlacement;
-  bordersWidth, bordersHeight: SmallInt;
-  rect: TRect;
-begin
-  Result.State := WindowState;
-  Result.Position := Position;
-  case WindowState of
-    wsMinimized:  ;
-    wsNormal:     begin
-                    Result.Width := ClientWidth;
-                    Result.Height := ClientHeight;
-                    Result.Left := Left;
-                    Result.Top := Top;
-                  end;
-    wsMaximized:  begin
-                    wp.length := SizeOf(TWindowPlacement);
-                    GetWindowPlacement(Handle, @wp);
+// // Return current window params
+// function TFormMain.GetWindowParams: TKMWindowParamsRecord;
+//   // FindTaskBar returns the Task Bar's position, and fills in
+//   // ARect with the current bounding rectangle.
+//   function FindTaskBar(var aRect: TRect): Integer;
+//   {$IFDEF MSWINDOWS}
+//   var	AppData: TAppBarData;
+//   {$ENDIF}
+//   begin
+//     Result := -1;
+//     {$IFDEF MSWINDOWS}
+//     // 'Shell_TrayWnd' is the name of the task bar's window
+//     AppData.Hwnd := FindWindow('Shell_TrayWnd', nil);
+//     if AppData.Hwnd <> 0 then
+//     begin
+//       AppData.cbSize := SizeOf(TAppBarData);
+//       // SHAppBarMessage will return False (0) when an error happens.
+//       if SHAppBarMessage(ABM_GETTASKBARPOS,
+//         {$IFDEF FPC}@AppData{$ENDIF}
+//         {$IFDEF WDC}AppData{$ENDIF}
+//         ) <> 0 then
+//       begin
+//         Result := AppData.uEdge;
+//         aRect := AppData.rc;
+//       end;
+//     end;
+//     {$ENDIF}
+//   end;
+// var
+//   wp: TWindowPlacement;
+//   bordersWidth, bordersHeight: SmallInt;
+//   rect: TRect;
+// begin
+//   Result.State := WindowState;
+//   Result.Position := Position;
+//   case WindowState of
+//     wsMinimized:  ;
+//     wsNormal:     begin
+//                     Result.Width := ClientWidth;
+//                     Result.Height := ClientHeight;
+//                     Result.Left := Left;
+//                     Result.Top := Top;
+//                   end;
+//     wsMaximized:  begin
+//                     wp.length := SizeOf(TWindowPlacement);
+//                     GetWindowPlacement(Handle, @wp);
 
-                    // Get current borders width/height
-                    bordersWidth := Width - ClientWidth;
-                    bordersHeight := Height - ClientHeight;
+//                     // Get current borders width/height
+//                     bordersWidth := Width - ClientWidth;
+//                     bordersHeight := Height - ClientHeight;
 
-                    // rcNormalPosition do not have ClientWidth/ClientHeight
-                    // so we have to calc it manually via substracting borders width/height
-                    Result.Width := wp.rcNormalPosition.Right - wp.rcNormalPosition.Left - bordersWidth;
-                    Result.Height := wp.rcNormalPosition.Bottom - wp.rcNormalPosition.Top - bordersHeight;
+//                     // rcNormalPosition do not have ClientWidth/ClientHeight
+//                     // so we have to calc it manually via substracting borders width/height
+//                     Result.Width := wp.rcNormalPosition.Right - wp.rcNormalPosition.Left - bordersWidth;
+//                     Result.Height := wp.rcNormalPosition.Bottom - wp.rcNormalPosition.Top - bordersHeight;
 
-                    // Adjustment of window position due to TaskBar position/size
-                    case FindTaskBar(rect) of
-                      ABE_LEFT: begin
-                                  Result.Left := wp.rcNormalPosition.Left + rect.Right;
-                                  Result.Top := wp.rcNormalPosition.Top;
-                                end;
-                      ABE_TOP:  begin
-                                  Result.Left := wp.rcNormalPosition.Left;
-                                  Result.Top := wp.rcNormalPosition.Top + rect.Bottom;
-                                end
-                      else      begin
-                                  Result.Left := wp.rcNormalPosition.Left;
-                                  Result.Top := wp.rcNormalPosition.Top;
-                                end;
-                    end;
-                  end;
-  end;
-end;
+//                     // Adjustment of window position due to TaskBar position/size
+//                     case FindTaskBar(rect) of
+//                       ABE_LEFT: begin
+//                                   Result.Left := wp.rcNormalPosition.Left + rect.Right;
+//                                   Result.Top := wp.rcNormalPosition.Top;
+//                                 end;
+//                       ABE_TOP:  begin
+//                                   Result.Left := wp.rcNormalPosition.Left;
+//                                   Result.Top := wp.rcNormalPosition.Top + rect.Bottom;
+//                                 end
+//                       else      begin
+//                                   Result.Left := wp.rcNormalPosition.Left;
+//                                   Result.Top := wp.rcNormalPosition.Top;
+//                                 end;
+//                     end;
+//                   end;
+//   end;
+// end;
 
 
 
@@ -2154,14 +2156,14 @@ end;
 
 procedure TFormMain.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 {$IFNDEF MSWINDOWS}
-var
-  handled: Boolean;
+// var
+  // handled: Boolean;
 {$ENDIF}
 begin
   // We use WM_MOUSEWHEEL message handler on Windows, since it prevents some bugs from happaning
   // F.e. on Win10 it was reported, that we got event 3 times on single turn of mouse wheel, if use default form event handler
 {$IFNDEF MSWINDOWS}
-  handled := False;
+  // handled := False;
   gGameApp.MouseWheel(Shift, GetMouseWheelStepsCnt(WheelDelta), RenderArea.ScreenToClient(MousePos).X, RenderArea.ScreenToClient(MousePos).Y, handled);
 {$ENDIF}
 end;
@@ -2169,7 +2171,8 @@ end;
 
 function TFormMain.GetMouseWheelStepsCnt(aWheelData: Integer): Integer;
 begin
-  Result := aWheelData div WHEEL_DELTA;
+  // Result := aWheelData div WHEEL_DELTA;
+  Result := 0;
 end;
 
 
@@ -2195,7 +2198,7 @@ procedure TFormMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   menuHidden: Boolean;
 begin
-  fDevSettings.Save;
+  // fDevSettings.Save;
 
   if not QUERY_ON_FORM_CLOSE then
   begin
