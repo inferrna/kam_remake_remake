@@ -59,7 +59,7 @@ uses
   KM_ResHouses, KM_CommonUtils, KM_DevPerfLog, KM_DevPerfLogTypes,
   KM_UnitGroupTypes,
   KM_ResTypes
-  {$IFDEF Unix}
+  {$IFDEF FPC}
   , KM_Sort
   {$ENDIF}
   ;
@@ -148,7 +148,7 @@ begin
   SaveStream.PlaceMarker('AIGeneral_unitsEquipOrdered');
   SaveStream.Write(fUnitsEquipOrdered.Count);
   keyArray := fUnitsEquipOrdered.Keys.ToArray;
-  {$IFNDEF Unix}
+  {$IFNDEF FPC}
   TArray.Sort<Integer>(keyArray);
   {$ELSE}
   SortCustom(keyArray, Low(keyArray), High(keyArray), SizeOf(keyArray[0]), CompareKeys);

@@ -68,7 +68,7 @@ uses
   KM_Game,
   KM_HandsCollection, KM_HandTypes,
   KM_Sound
-  {$IFDEF Unix}
+  {$IFDEF FPC}
   , KM_Sort
   {$ENDIF}
   ;
@@ -341,7 +341,7 @@ begin
   SaveStream.Write(fSoundRemoveRequests.Count);
 
   keyArray := fSoundRemoveRequests.Keys.ToArray;
-  {$IFNDEF Unix}
+  {$IFNDEF FPC}
   TArray.Sort<Integer>(keyArray);
   {$ELSE}
   SortCustom(keyArray, Low(keyArray), High(keyArray), SizeOf(keyArray[0]), CompareKeys);
