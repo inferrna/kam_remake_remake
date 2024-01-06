@@ -1411,6 +1411,7 @@ procedure TKMGame.AutoSave(aTimestamp: TDateTime);
 {$IFDEF WDC}
 var
   localIsMultiPlayerOrSpec: Boolean;
+  task: TKMWorkerThreadTask;
 {$ENDIF}
 begin
   Save(AUTOSAVE_SAVE_NAME, aTimestamp, fAutoSaveWorkerThreadHolder.Worker); //Save to temp file
@@ -1419,10 +1420,11 @@ begin
   {$IFDEF WDC}
     //Avoid accessing Self from async thread, copy required states to local variables
     localIsMultiPlayerOrSpec := fParams.IsMultiPlayerOrSpec;
-    fAutoSaveWorkerThreadHolder.Worker.QueueWork(procedure
+    task := TKMWorkerThreadTask.Create(procedure
     begin
       DoAutoSaveRename(localIsMultiPlayerOrSpec);
     end, 'AutoSaveRename');
+    fAutoSaveWorkerThreadHolder.Worker.Enqueue(task);
   {$ELSE}
     DoAutoSaveRename(fParams.IsMultiPlayerOrSpec);
   {$ENDIF}
@@ -2243,6 +2245,7 @@ end;
 procedure TKMGame.PrepareSaveFolder(const aPathName: String; aSaveByPlayer: Boolean; aSaveWorkerThread: TKMWorkerThread);
 var
   path: string;
+  // task: TKMWorkerThreadTask;
 begin
   path := aPathName;
   //Makes the folders in case they were deleted.
@@ -2250,7 +2253,27 @@ begin
   if (aPathName <> '') then
   begin
     // We can make directories in async too, since all save parts are made in async now
-    // aSaveWorkerThread.QueueWork(foo, 'Prepare save dir');
+    // task := TKMWorkerThreadTask.Create(procedure
+    // begin
+    //   path := ExtractFilePath(path);
+    //   if DirectoryExists(path) then
+    //   begin
+    //     // Delete save folder content, since we want to overwrite old saves
+    //     if aSaveByPlayer then
+    //     begin
+    //       // Delete whole folder to the bin
+    //       // It looks better have one folder in the bin, than many files
+    //       KMDeleteFolderToBin(path);
+    //       ForceDirectories(path);
+    //     end
+    //     else
+    //       // Delete all files
+    //       KMDeleteFolderContent(path);
+    //   end
+    //   else
+    //     ForceDirectories(path);
+    // end, 'Prepare save dir');
+    // aSaveWorkerThread.Enqueue(task);
   end;
 end;
 
@@ -2384,7 +2407,7 @@ begin
     // Emulate slow save in the async save thread
     if SLOW_GAME_SAVE_ASYNC then
     begin
-      task := TKMWorkerThreadTask.Create(foo1, nil, 'Slow Game Save');
+      task := TKMWorkerThreadTask.Create(foo1, 'Slow Game Save');
       aSaveWorkerThread.Enqueue(task);
     end;
 

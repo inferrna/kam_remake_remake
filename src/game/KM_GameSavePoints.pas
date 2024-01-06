@@ -240,6 +240,7 @@ procedure TKMSavePointCollection.NewSavePointAsyncAndFree(var aStream: TKMemoryS
 {$IFDEF WDC}
 var
   localStream: TKMemoryStream;
+  task: TKMWorkerThreadTask;
 {$ENDIF}
 begin
   {$IFDEF WDC}
@@ -258,7 +259,7 @@ begin
   // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
 
-  aWorkerThread.QueueWork(
+  task := TKMWorkerThreadTask.Create(
     procedure
     var
       S: TKMemoryStream;
@@ -280,6 +281,8 @@ begin
       // Decrease thread counter
       AtomicDecrement(fAsyncThreadsCnt);
     end, 'NewSavePointAsyncAndFree');
+
+  aWorkerThread.Enqueue(task);
 
   {$ELSE}
   NewSavePoint(aStream, aTick);
@@ -344,6 +347,7 @@ procedure TKMSavePointCollection.SaveToFileAsync(const aFileName: UnicodeString;
 {$IFNDEF WDC}
 var
   localStream: TKMemoryStream;
+  task: TKMWorkerThreadTask;
 {$ENDIF}
 begin
   if Self = nil then Exit;
@@ -352,7 +356,7 @@ begin
    // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
 
-  aWorkerThread.QueueWork(
+  task := TKMWorkerThreadTask.Create(
     procedure
     var
       localStream: TKMemoryStream;
@@ -367,6 +371,8 @@ begin
         localStream.Free;
       end;
     end, 'Save SavePoints');
+
+  aWorkerThread.Enqueue(task);
   {$ELSE}
     localStream := TKMemoryStreamBinary.Create;
     try

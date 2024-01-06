@@ -4,7 +4,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections;
 
-  procedure TKMWorkLoggerCallback(aJobName: String);
+  // procedure TKMWorkLoggerCallback(aJobName: String);
 
 type
   TProcedure = procedure;
@@ -26,7 +26,8 @@ type
     Proc: TProcedure;
     Callback: TProcedureStr;
   public
-    constructor Create(aProc: TProcedure; aCallback: TProcedureStr = nil; aWorkName: string = '');
+    constructor Create(aProc: TProcedure; aCallback: TProcedureStr = nil; aWorkName: string = ''); overload;
+    constructor Create(aProc: TProcedure; aWorkName: string = ''); overload;
 
     procedure exec; override;
   end;
@@ -41,7 +42,7 @@ type
     procedure NameThread(aThreadName: string); overload;
     function GetBaseThreadName: string;
   public
-    //Special mode for exception handling. Runs work synchronously inside QueueWork
+    //Special mode for exception handling. Runs work synchronously inside Enqueue
     fSynchronousExceptionMode: Boolean;
 
     constructor Create(const aThreadName: string = '');
@@ -83,6 +84,11 @@ begin
   inherited Create(aWorkName);
   Proc := aProc;
   Callback := aCallback;
+end;
+
+constructor TKMWorkerThreadTask.Create(aProc: TProcedure; aWorkName: string = '');
+begin
+  Create(aProc, nil, aWorkName);
 end;
 
 procedure TKMWorkerThreadTask.exec;
@@ -199,7 +205,7 @@ begin
     if job <> nil then
     begin
       NameThread(threadName);
-      job.exec();
+      job.exec;
       FreeAndNil(job);
     end;
 
@@ -207,15 +213,15 @@ begin
   end;
 end;
 
-procedure TKMWorkLoggerCallback(aJobName: String);
-begin
-  gLog.MultithreadLogging := True;
-  try
-    gLog.AddTime(Format('Job ''%s'' is completed', [aJobName]));
-  finally
-    gLog.MultithreadLogging := False;
-  end;
-end;
+// procedure TKMWorkLoggerCallback(aJobName: String);
+// begin
+//   gLog.MultithreadLogging := True;
+//   try
+//     gLog.AddTime(Format('Job ''%s'' is completed', [aJobName]));
+//   finally
+//     gLog.MultithreadLogging := False;
+//   end;
+// end;
 
 procedure TKMWorkerThread.Enqueue(aTask: TKMWorkerThreadTaskBase);
 begin
@@ -226,7 +232,7 @@ begin
   else
   begin
     if Finished then
-      raise Exception.Create('Worker thread not running in TKMWorkerThread.QueueWork');
+      raise Exception.Create('Worker thread not running in TKMWorkerThread.Enqueue');
 
     // TMonitor.Enter(fTaskQueue);
     try
