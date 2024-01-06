@@ -176,6 +176,7 @@ end;
 procedure TKMResExporter.ExportSpritesFromRXXToPNG(aRT: TRXType; aOnDone: TProcedureStr);
 var
   procCallback: TProcedure;
+  task: TKMWorkerThreadTask;
 begin
   // Make sure we loaded all of the resources (to avoid collisions with async res loader
   gRes.LoadGameResources(True);
@@ -190,7 +191,9 @@ begin
     rxTiles : procCallback := ExportSpritesFromRXXToPNGGuiTiles;
   end;
 
-  GetOrCreateExportWorker.QueueWork(procCallback, aOnDone, 'Export from ' + RX_INFO[aRT].FileName + '.rxx');
+  task := TKMWorkerThreadTask.Create(procCallback, aOnDone, 'Export from ' + RX_INFO[aRT].FileName + '.rxx');
+
+  GetOrCreateExportWorker.Enqueue(task);
 end;
 
 procedure TKMResExporter.TKMExportSpritesFromRXAToPNGGen(aRT: TRXType);
@@ -751,12 +754,16 @@ end;
 
 //Export Houses graphics categorized by House and Action
 procedure TKMResExporter.ExportHouseAnim(aOnDone: TProcedureStr);
+var
+  task: TKMWorkerThreadTask;
 begin
   // Make sure we loaded all of the resources (to avoid collisions with async res loader
   gRes.LoadGameResources(True);
 
+  task := TKMWorkerThreadTask.Create(TKMResExportHouseAnim, aOnDone, 'Export house anim');
+
   // Asynchroniously export data
-  GetOrCreateExportWorker.QueueWork(TKMResExportHouseAnim, aOnDone, 'Export house anim');
+  GetOrCreateExportWorker.Enqueue(task);
 end;
 
 
@@ -932,12 +939,16 @@ end;
 
 //Export Trees graphics categorized by ID
 procedure TKMResExporter.ExportTreeAnim(aOnDone: TProcedureStr);
+var
+   task: TKMWorkerThreadTask;
 begin
   // Make sure we loaded all of the resources (to avoid collisions with async res loader
   gRes.LoadGameResources(True);
 
+  task := TKMWorkerThreadTask.Create(TKMResExportTreeAnim, aOnDone, 'Export tree anim');
+
   // Asynchroniously export data
-  GetOrCreateExportWorker.QueueWork(TKMResExportTreeAnim, aOnDone, 'Export tree anim');
+  GetOrCreateExportWorker.Enqueue(task);
 end;
 
 

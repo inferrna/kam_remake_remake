@@ -5,8 +5,7 @@ uses
   SysUtils, StrUtils, Classes, Math,
   ComCtrls, Controls, Buttons, Dialogs, ExtCtrls, Forms, Graphics, Menus, StdCtrls,
   KM_RenderControl, KM_CommonTypes,
-  // KM_SettingsDev,
-  KM_WindowParams, KM_GameTypes,
+  KM_SettingsDev, KM_WindowParams, KM_GameTypes,
   KM_Defaults, KM_ResExporter,
   {$IFDEF FPC} LResources, Spin, {$ENDIF}
   {$IFNDEF FPC} Vcl.Samples.Spin, {$ENDIF}  // For some unnown reason Delphi auto add Vcl.Samples.Spin when use {$IFDEF WDC}
@@ -356,7 +355,7 @@ type
     {$IFDEF MSWindows}
     fMenuItemHint: TKMVclMenuItemHint; // Custom hint over menu item
     {$ENDIF}
-    // fDevSettings: TKMDevSettings;
+    fDevSettings: TKMDevSettings;
     fStartVideoPlayed: Boolean;
     fUpdating: Boolean;
     fMissionDefOpenPath: UnicodeString;
@@ -504,7 +503,7 @@ begin
 
   fUpdating := True;
   try
-    // fDevSettings.Load;
+    fDevSettings.Load;
   finally
     fUpdating := False;
   end;
@@ -519,7 +518,7 @@ begin
   fMenuItemHint.Free;
   {$ENDIF}
 
-  // FreeAndNil(fDevSettings);
+  FreeAndNil(fDevSettings);
   FreeAndNil(fResExporter);
 end;
 
@@ -597,17 +596,17 @@ procedure TFormMain.FormKeyDownProc(aKey: Word; aShift: TShiftState; aIsFirst: B
 begin
   if aKey = gResKeys[kfDebugWindow] then
   begin
-    // case fDevSettings.DebugFormState of
-    //   fsNone  :     if (ssCtrl in aShift) then
-    //                   fDevSettings.DebugFormState := fsDebugMenu //Hide groupbox when Ctrl is pressed
-    //                 else
-    //                   fDevSettings.DebugFormState := fsDebugFull;
-    //   fsDebugMenu:  fDevSettings.DebugFormState := fsDebugFull;
-    //   fsDebugFull:  fDevSettings.DebugFormState := fsNone;
-    // end;
+    case fDevSettings.DebugFormState of
+      fsNone  :     if (ssCtrl in aShift) then
+                      fDevSettings.DebugFormState := fsDebugMenu //Hide groupbox when Ctrl is pressed
+                    else
+                      fDevSettings.DebugFormState := fsDebugFull;
+      fsDebugMenu:  fDevSettings.DebugFormState := fsDebugFull;
+      fsDebugFull:  fDevSettings.DebugFormState := fsNone;
+    end;
 
     UpdateFormState;
-    // fDevSettings.Save;
+    fDevSettings.Save;
   end;
 
   if gGameApp <> nil then
@@ -1385,7 +1384,7 @@ end;
 
 procedure TFormMain.OtherFormChanged;
 begin
-  // fDevSettings.Save;
+  fDevSettings.Save;
 end;
 
 
@@ -1401,10 +1400,10 @@ function TFormMain.AllowFindObjByUID: Boolean;
 begin
   Result := False
   // Result := // Update values only if Debug panel is opened or if we are debugging
-  //       (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
-  //         or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
-  //       and chkFindObjByUID.Checked     // and checkbox is checked
-  //       and gMain.IsDebugChangeAllowed; // and not in MP
+  //      (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
+  //        or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
+  //      and chkFindObjByUID.Checked     // and checkbox is checked
+  //      and gMain.IsDebugChangeAllowed; // and not in MP
 end;
 
 
@@ -1490,25 +1489,25 @@ var
   I: Integer;
   showCtrls, showGroupBox: Boolean;
 begin
-  // case fDevSettings.DebugFormState of
-  //   fsNone:       begin
-  //                   showCtrls := False;
-  //                   showGroupBox := False;
-  //                 end;
-  //   fsDebugMenu:  begin
-  //                   showCtrls := True;
-  //                   showGroupBox := False;
-  //                 end;
-  //   fsDebugFull:  begin
-  //                   showCtrls := True;
-  //                   showGroupBox := True;
-  //                 end;
-  //   else
-  //   begin
+  case fDevSettings.DebugFormState of
+    fsNone:       begin
+                    showCtrls := False;
+                    showGroupBox := False;
+                  end;
+    fsDebugMenu:  begin
+                    showCtrls := True;
+                    showGroupBox := False;
+                  end;
+    fsDebugFull:  begin
+                    showCtrls := True;
+                    showGroupBox := True;
+                  end;
+    else
+    begin
       showCtrls := False;
       showGroupBox := False;
-  //   end;
-  // end;
+    end;
+  end;
 
 
   Refresh;
@@ -1793,13 +1792,13 @@ begin
   if Assigned(fOnControlsUpdated) and (Sender is TControl) then
     fOnControlsUpdated(Sender, TControl(Sender).Tag);
 
-  // fDevSettings.Save;
+  fDevSettings.Save;
 end;
 
 
 procedure TFormMain.cpCollapseChanged(Sender: TObject);
 begin
-  // fDevSettings.Save;
+  fDevSettings.Save;
 end;
 
 
@@ -2198,7 +2197,7 @@ procedure TFormMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   menuHidden: Boolean;
 begin
-  // fDevSettings.Save;
+  fDevSettings.Save;
 
   if not QUERY_ON_FORM_CLOSE then
   begin

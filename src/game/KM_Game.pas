@@ -2359,6 +2359,7 @@ var
   I, index: Integer;
   fullPath, rngPath, mpLocalDataPath, newSaveName, loadFrom: UnicodeString;
   saveByPlayer: Boolean;
+  task: TKMWorkerThreadTask;
 begin
   {$IFDEF PERFLOG}
   gPerfLogs.SectionEnter(psGameSaveWait);
@@ -2382,9 +2383,10 @@ begin
   try
     // Emulate slow save in the async save thread
     if SLOW_GAME_SAVE_ASYNC then
-      aSaveWorkerThread.QueueWork(foo1,
-        'Slow Game Save'
-      );
+    begin
+      task := TKMWorkerThreadTask.Create(foo1, nil, 'Slow Game Save');
+      aSaveWorkerThread.Enqueue(task);
+    end;
 
     //Convert name to full path+name
     fullPath := SaveName(aSaveName, EXT_SAVE_MAIN, fParams.IsMultiplayer);
