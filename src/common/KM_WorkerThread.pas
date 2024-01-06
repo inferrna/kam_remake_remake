@@ -49,7 +49,7 @@ type
     destructor Destroy; override;
     procedure Execute; override;
 
-    procedure Enqueue(aTask: TKMWorkerThreadTaskBase);
+    procedure Enqueue(aTask: ITKMWorkerThreadTask);
     procedure WaitForAllWorkToComplete;
   end;
 
@@ -223,7 +223,7 @@ end;
 //   end;
 // end;
 
-procedure TKMWorkerThread.Enqueue(aTask: TKMWorkerThreadTaskBase);
+procedure TKMWorkerThread.Enqueue(aTask: ITKMWorkerThreadTask);
 begin
   if fSynchronousExceptionMode then
   begin
