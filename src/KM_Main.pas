@@ -98,7 +98,8 @@ implementation
 uses
   Classes, SysUtils, SysConst, StrUtils, Math,
   Forms,
-  {$IF DEFINED(MSWindows)} MMSystem,
+  {$IF DEFINED(MSWindows)}
+  MMSystem,
   {$ELSEIF DEFINED(Unix)}
   Dialogs, LCLType, Controls,
   {$ENDIF}
