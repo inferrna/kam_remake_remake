@@ -20,14 +20,14 @@ type
 
     fDebugFormState: TKMDebugFormState; // State of the Debug form
 
-    fMainGroup: TExpandPanels;
+    fMainGroup: TGroupBox;
     fDontCollapse: TMyRollOut;
 
     procedure DoLoad;
     procedure DoSave;
     function GetXmlSectionName(aPanel: TMyRollOut): string;
   public
-    constructor Create(const aExeDir: string; aMainGroup: TExpandPanels; aDontCollapse: TMyRollOut);
+    constructor Create(const aExeDir: string; aMainGroup: TGroupBox; aDontCollapse: TMyRollOut);
 
     property DebugFormState: TKMDebugFormState read fDebugFormState write fDebugFormState;
 
@@ -43,7 +43,7 @@ uses
 
 
 { TKMDevSettings }
-constructor TKMDevSettings.Create(const aExeDir: string; aMainGroup: TExpandPanels; aDontCollapse: TMyRollOut);
+constructor TKMDevSettings.Create(const aExeDir: string; aMainGroup: TGroupBox; aDontCollapse: TMyRollOut);
 begin
   inherited Create;
 
@@ -120,8 +120,8 @@ begin
   // Apply default settings
   if not FileExists(fSettingsPath) then
   begin
-    for I := 0 to fMainGroup.Count - 1 do
-      TMyRollOut(fMainGroup.Panel(I)).Collapsed := True;
+    for I := 0 to fMainGroup.ComponentCount - 1 do
+      TMyRollOut(fMainGroup.Controls[I]).Collapsed := True;
 
     fDontCollapse.Collapsed := False; //The only not collapsed section
     Exit;
@@ -135,9 +135,9 @@ begin
   nDebugForm := nRoot.AddOrFindChild('DebugForm');
   fDebugFormState := TKMDebugFormState(nDebugForm.Attributes['State'].AsInteger(0));
 
-  for I := 0 to fMainGroup.Count - 1 do
+  for I := 0 to fMainGroup.ComponentCount - 1 do
   begin
-    cp := TMyRollOut(fMainGroup.Panel(I));
+    cp := TMyRollOut(fMainGroup.Controls[I]);
     cpName := GetXmlSectionName(cp);
 
     if nDebugForm.HasChild(cpName) then
@@ -220,9 +220,9 @@ begin
   nDebugForm := nRoot.AddOrFindChild('DebugForm');
   nDebugForm.Attributes['State'] := Ord(fDebugFormState);
 
-  for I := 0 to fMainGroup.Count - 1 do
+  for I := 0 to fMainGroup.ComponentCount - 1 do
   begin
-    cp := TMyRollOut(fMainGroup.Panel(I));
+    cp := TMyRollOut(fMainGroup.Controls[I]);
 
     nSection := nDebugForm.AddOrFindChild(GetXmlSectionName(cp));
 

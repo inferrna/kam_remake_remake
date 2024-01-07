@@ -187,12 +187,15 @@ type
     {$ENDIF}
     {$IFDEF FPC}
     mainGroup: TGroupBox;
+    cpGameControls: TMyRollOut;
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     GroupBoxLogs: TGroupBox;
     cpPerfLogs: TMyRollOut;
+    chkShowFlatTerrain: TCheckBox;
+    tbWaterLight: TTrackBar;
     {$ENDIF}
     N5: TMenuItem;
     LoadSavThenRpl: TMenuItem;
@@ -459,7 +462,9 @@ end;
 //Remove VCL panel and use flicker-free TMyPanel instead
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
-  // Application.OnMessage := DoMessage;
+  {$IFDEF WDC}
+  Application.OnMessage := DoMessage;
+  {$ENDIF}
 
   fStartVideoPlayed := False;
   RenderArea := TKMRenderControl.Create(Self);
@@ -496,10 +501,10 @@ begin
   mainGroup.BringToFront;
   {$ENDIF}
 
-  // chkShowFlatTerrain.Tag := Ord(dcFlatTerrain);
-  // tbWaterLight.Tag := Ord(dcFlatTerrain);
+  chkShowFlatTerrain.Tag := Ord(dcFlatTerrain);
+  tbWaterLight.Tag := Ord(dcFlatTerrain);
 
-  // fDevSettings := TKMDevSettings.Create(ExeDir, mainGroup, cpGameControls);
+  fDevSettings := TKMDevSettings.Create(ExeDir, mainGroup, cpGameControls);
 
   fUpdating := True;
   try
