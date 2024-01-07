@@ -5,15 +5,21 @@ interface
   function ShellOpenFile(const aURL: string): Boolean;
   function ShellOpenFolder(const aURL: string; aSelectFile: Boolean): Boolean;
 
+  {$IFNDEF Unix}
   function GetMemUsed: NativeUInt;
   function GetCommittedStackSize: NativeUInt;
+  {$ENDIF}
 
 implementation
 uses
   {$IFDEF MSWindows}Windows, {$ENDIF}
   Forms
   {$IFDEF WDC}, ShellApi, PsAPI {$ENDIF}
+  {$IFDEF Unix}
   {$IFDEF FPC}, LCLIntF {$ENDIF}
+  {$ELSE}
+  {$IFDEF FPC}, JwaPsApi {$ENDIF}
+  {$ENDIF}
   ;
 
 
@@ -32,8 +38,10 @@ end;
 
 
 function ShellOpenFolder(const aURL: string; aSelectFile: Boolean): Boolean;
-var
+{$IFDEF WDC}
+  var
   url: string;
+{$ENDIF}
 begin
   if aURL = '' then Exit(False);
 
@@ -51,23 +59,26 @@ begin
 end;
 
 
+{$IFNDEF Unix}
 function GetMemUsed: NativeUInt;
-// var
-//   pmc: PPROCESS_MEMORY_COUNTERS;
-//   cb: Integer;
+var
+  pmc: PPROCESS_MEMORY_COUNTERS;
+  cb: Integer;
 begin
-  // cb := SizeOf(_PROCESS_MEMORY_COUNTERS);
-  // GetMem(pmc, cb);
-  // pmc^.cb := cb;
-  // if GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb) then
-  //   Result := pmc^.WorkingSetSize
-  // else
+  cb := SizeOf(_PROCESS_MEMORY_COUNTERS);
+  GetMem(pmc, cb);
+  pmc^.cb := cb;
+  if GetProcessMemoryInfo(GetCurrentProcess(), pmc, cb) then
+    Result := pmc^.WorkingSetSize
+  else
     Result := 0;
 
-  // FreeMem(pmc);
+  FreeMem(pmc);
 end;
+{$ENDIF}
 
 
+{$IFNDEF Unix}
 function GetCommittedStackSize: NativeUInt;
 //NB: Win32 uses FS, Win64 uses GS as base for Thread Information Block.
 asm
@@ -82,6 +93,7 @@ asm
   sub rax, rdx          // compute difference in RAX (=Result)
  {$ENDIF}
 end;
+{$ENDIF}
 
 
 end.

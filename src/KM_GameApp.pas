@@ -1388,12 +1388,14 @@ var
   memUsed, stackUsed: NativeUInt;
 {$ENDIF}
 begin
+  {$IFNDEF Unix}
   {$IFDEF PERFLOG}
   memUsed := GetMemUsed;
   stackUsed := GetCommittedStackSize;
 
   gPerfLogs.SectionAddValue(psMemUsed, memUsed div (10*1024), fGlobalTickCount, IntToStr(memUsed div (1024*1024)) + 'Mb');
   gPerfLogs.SectionAddValue(psStackUsed, stackUsed div 128, fGlobalTickCount, IntToStr(stackUsed div 1024) + 'Kb');
+  {$ENDIF}
   {$ENDIF}
 end;
 
