@@ -149,7 +149,6 @@ begin
 
   {$IFDEF PERFLOG}
   gPerfLogs := TKMPerfLogs.Create([], True);
-  {$IFDEF WDC}
   gPerfLogs.ShowForm(fFormMain.cpPerfLogs);
   gPerfLogs.OnFormChanged := fFormMain.OtherFormChanged;
 
@@ -157,7 +156,6 @@ begin
   fFormMain.cpPerfLogs.Collapsed := False; //We can set TCategoryPanel height only when collapsed set to False
   fFormMain.cpPerfLogs.Height := gPerfLogs.FormHeight;
   fFormMain.cpPerfLogs.Collapsed := collapsed; //Restore collapsed flag
-  {$ENDIF}
   {$ELSE}
   fFormMain.cpPerfLogs.Hide;
   {$ENDIF}

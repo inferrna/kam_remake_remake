@@ -5,13 +5,12 @@ uses
   SysUtils, StrUtils, Classes, Math,
   ComCtrls, Controls, Buttons, Dialogs, ExtCtrls, Forms, Graphics, Menus, StdCtrls,
   KM_RenderControl, KM_CommonTypes,
-  KM_SettingsDev, KM_WindowParams, KM_GameTypes,
+  KM_WindowParams, KM_SettingsDev, KM_GameTypes,
   KM_Defaults, KM_ResExporter,
-  {$IFDEF FPC} LResources, Spin, {$ENDIF}
-  {$IFNDEF FPC} Vcl.Samples.Spin, {$ENDIF}  // For some unnown reason Delphi auto add Vcl.Samples.Spin when use {$IFDEF WDC}
-  {$IFDEF MSWindows} KM_VclMenuHint, ShellAPI, Windows, Messages; {$ENDIF}
-  {$IFDEF Unix} ExpandPanels, LCLIntf, LCLType; {$ENDIF}
-
+  {$IFDEF FPC} LResources, Spin, ExpandPanels, LCLIntf, LCLType {$ENDIF}
+  {$IFNDEF FPC} Vcl.Samples.Spin {$ENDIF}  // For some unnown reason Delphi auto add Vcl.Samples.Spin when use {$IFDEF WDC}
+  {$IFDEF MSWindows} KM_VclMenuHint, ShellAPI, Windows, Messages {$ENDIF}
+  ;
 
 type
   { TFormMain }
@@ -193,6 +192,7 @@ type
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     GroupBoxLogs: TGroupBox;
+    cpPerfLogs: TMyRollOut;
     {$ENDIF}
     N5: TMenuItem;
     LoadSavThenRpl: TMenuItem;
