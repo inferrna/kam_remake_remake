@@ -196,6 +196,18 @@ type
     cpPerfLogs: TMyRollOut;
     chkShowFlatTerrain: TCheckBox;
     tbWaterLight: TTrackBar;
+    seFindObjByUID: TSpinEdit;
+    chkBevel: TCheckBox;
+    chkLogSkipTempCmd: TCheckBox;
+    chkSnowHouses: TCheckBox;
+    chkInterpolatedRender: TCheckBox;
+    chkShowObjects: TCheckBox;
+    chkShowOverlays: TCheckBox;
+    chkShowUnits: TCheckBox;
+    chkShowHouses: TCheckBox;
+    rgDebugFont: TRadioGroup;
+    cpDebugInput: TMyRollOut;
+    chkFindObjByUID: TCheckBox;
     {$ENDIF}
     N5: TMenuItem;
     LoadSavThenRpl: TMenuItem;
@@ -708,7 +720,11 @@ end;
 
 procedure TFormMain.RenderAreaResize(aWidth, aHeight: Integer);
 begin
-  // gMain.Resize(aWidth, aHeight, GetWindowParams);
+  {$IFDEF MSWindows}
+  gMain.Resize(aWidth, aHeight, GetWindowParams);
+  {$ELSE}
+  gMain.Resize(aWidth, aHeight);
+  {$ENDIF}
 end;
 
 
@@ -1127,7 +1143,7 @@ end;
 
 procedure TFormMain.btFindObjByUIDClick(Sender: TObject);
 begin
-  // FindObjByUID(seFindObjByUID.Value);
+  FindObjByUID(seFindObjByUID.Value);
 end;
 
 
@@ -1249,53 +1265,51 @@ begin
   end;
 end;
 
+function SkipReset(aCtrl: TControl): Boolean;
+begin
+  Result := {$IFDEF WDC}
+               (aCtrl = chkSnowHouses)
+            or (aCtrl = chkLoadUnsupSaves)
+            or (aCtrl = chkDebugScripting)
+            or (aCtrl = tbWaterLight)
+            or (aCtrl = seMaxImageSize);
+            {$ENDIF}
+            {$IFDEF FPC} False; {$ENDIF}
+end;
 
 procedure TFormMain.ResetControl(aCtrl: TControl);
-
-  function SkipReset(aCtrl: TControl): Boolean;
-  begin
-    Result := {$IFDEF WDC}
-                 (aCtrl = chkSnowHouses)
-              or (aCtrl = chkLoadUnsupSaves)
-              or (aCtrl = chkDebugScripting)
-              or (aCtrl = tbWaterLight)
-              or (aCtrl = seMaxImageSize);
-              {$ENDIF}
-              {$IFDEF FPC} False; {$ENDIF}
-  end;
-
 begin
   if SkipReset(aCtrl) then Exit; //Skip reset for some controls
 
   if aCtrl is TCheckBox then
-    // TCheckBox(aCtrl).Checked :=   (aCtrl = chkBevel)
-    //                            or (aCtrl = chkLogNetConnection)
-    //                            or (aCtrl = chkLogSkipTempCmd)
-    //                            or ((aCtrl = chkSnowHouses) and gGameSettings.GFX.AllowSnowHouses)
-    //                            or ((aCtrl = chkInterpolatedRender) and gGameSettings.GFX.InterpolatedRender)
-    //                            or ((aCtrl = chkInterpolatedAnims) and gGameSettings.GFX.InterpolatedAnimations)
-    //                            or (aCtrl = chkShowObjects)
-    //                            or (aCtrl = chkShowHouses)
-    //                            or (aCtrl = chkShowUnits)
-    //                            or (aCtrl = chkShowOverlays)
-    //                            or (aCtrl = chkTerrainRenderAnim)
-    //                            or (aCtrl = chkTerrainRenderLight)
-    //                            or (aCtrl = chkTerrainRenderShadow)
-    //                            or (aCtrl = chkDebugLayerBase)
-    //                            or (aCtrl = chkDebugLayer1)
-    //                            or (aCtrl = chkDebugLayer2)
-    //                            or (aCtrl = chkDebugLayer3)
+    TCheckBox(aCtrl).Checked :=   (aCtrl = chkBevel)
+                               or (aCtrl = chkLogNetConnection)
+                               or (aCtrl = chkLogSkipTempCmd)
+                               or ((aCtrl = chkSnowHouses) and gGameSettings.GFX.AllowSnowHouses)
+                               or ((aCtrl = chkInterpolatedRender) and gGameSettings.GFX.InterpolatedRender)
+                               or ((aCtrl = chkInterpolatedAnims) and gGameSettings.GFX.InterpolatedAnimations)
+                               or (aCtrl = chkShowObjects)
+                               or (aCtrl = chkShowHouses)
+                               or (aCtrl = chkShowUnits)
+                               or (aCtrl = chkShowOverlays)
+                               or (aCtrl = chkTerrainRenderAnim)
+                               or (aCtrl = chkTerrainRenderLight)
+                               or (aCtrl = chkTerrainRenderShadow)
+                               or (aCtrl = chkDebugLayerBase)
+                               or (aCtrl = chkDebugLayer1)
+                               or (aCtrl = chkDebugLayer2)
+                               or (aCtrl = chkDebugLayer3)
   else
   if aCtrl is TTrackBar then
   begin
-    // if aCtrl = tbWaterLight then
-    //   TTrackBar(aCtrl).Position := Round(DEFAULT_WATER_LIGHT_MULTIPLIER * 100)
-    // else
-    //   TTrackBar(aCtrl).Position := 0
+    if aCtrl = tbWaterLight then
+      TTrackBar(aCtrl).Position := Round(DEFAULT_WATER_LIGHT_MULTIPLIER * 100)
+    else
+      TTrackBar(aCtrl).Position := 0
   end
   else
   if (aCtrl is TRadioGroup)
-    and (False{ aCtrl <> rgDebugFont }) then
+    and (aCtrl <> rgDebugFont) then
     TRadioGroup(aCtrl).ItemIndex := 0
   else
   if (aCtrl is TSpinEdit) then
@@ -1350,10 +1364,10 @@ procedure TFormMain.ControlsReset;
   begin
     for I := 0 to aBox.ControlCount - 1 do
     begin
-      // if SkipReset(aBox.Controls[I]) then Continue; //Skip reset for some controls
+      if SkipReset(aBox.Controls[I]) then Continue; //Skip reset for some controls
 
       if aBox.Controls[I] is TCheckBox then
-        TCheckBox(aBox.Controls[I]).Checked :=    (aBox.Controls[I] = nil{ chkBevel })
+        TCheckBox(aBox.Controls[I]).Checked :=    (aBox.Controls[I] = chkBevel)
                                                or (aBox.Controls[I] = chkLogNetConnection)
       else
       if aBox.Controls[I] is TTrackBar then
@@ -1403,12 +1417,11 @@ end;
 
 function TFormMain.AllowFindObjByUID: Boolean;
 begin
-  Result := False
-  // Result := // Update values only if Debug panel is opened or if we are debugging
-  //      (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
-  //        or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
-  //      and chkFindObjByUID.Checked     // and checkbox is checked
-  //      and gMain.IsDebugChangeAllowed; // and not in MP
+  Result := // Update values only if Debug panel is opened or if we are debugging
+       (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
+         or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
+       and chkFindObjByUID.Checked     // and checkbox is checked
+       and gMain.IsDebugChangeAllowed; // and not in MP
 end;
 
 
