@@ -3,7 +3,6 @@ unit KM_MainSettings;
 interface
 uses
   Classes,
-  {$IFDEF FPC}Forms,{$ENDIF}   //Lazarus do not know UITypes
   {$IFDEF WDC}UITypes,{$ENDIF} //We use settings in console modules
   KM_Resolutions,
   KM_Defaults,
@@ -48,11 +47,7 @@ var
 
 implementation
 uses
-  SysUtils, INIfiles, Math
-  {$IFNDEF FPC}
-  , Forms
-  {$ENDIF}
-  ;
+  SysUtils, INIfiles, Math, Forms;
 
 const
   NO_RENDER_MAX_TIME_MIN = 10; //in ms
