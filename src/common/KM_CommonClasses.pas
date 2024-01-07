@@ -421,6 +421,38 @@ type
     procedure Replace(aOldCRC, aNewCRC: Cardinal);
   end;
 
+  TKMSaveToFileTask = class(TKMWorkerThreadTaskBase)
+  private
+    Stream: TKMemoryStream;
+    FileName: string;
+  public
+    constructor Create(aStream: TKMemoryStream; const aFileName, aWorkName: string);
+
+    procedure exec; override;
+  end;
+
+  TKMSaveToFileCompressedTask = class(TKMWorkerThreadTaskBase)
+  private
+    Stream: TKMemoryStream;
+    FileName: string;
+    Marker: string;
+  public
+    constructor Create(aStream: TKMemoryStream; const aFileName, aMarker, aWorkName: string);
+
+    procedure exec; override;
+  end;
+
+  TKMSaveStreamsToFileTask = class(TKMWorkerThreadTaskBase)
+  private
+    MainStream, SubStream1, SubStream2: TKMemoryStream;
+    FileName: string;
+    Marker1, Marker2: string;
+  public
+    constructor Create(aMainStream, aSubStream1, aSubStream2: TKMemoryStream; const aFileName, aMarker1, aMarker2, aWorkName: string);
+
+    procedure exec; override;
+  end;
+
 
 implementation
 uses
@@ -506,113 +538,89 @@ begin
   inherited Write(Pointer(Value)^, I);
 end;
 
+constructor TKMSaveToFileTask.Create(aStream: TKMemoryStream; const aFileName, aWorkName: string);
+begin
+  inherited Create(aWorkName);
+
+  Stream := aStream;
+  FileName := aFileName;
+end;
+
+procedure TKMSaveToFileTask.exec;
+begin
+  try
+    Stream.SaveToFile(FileName);
+  finally
+    Stream.Free;
+  end;
+end;
+
+constructor TKMSaveToFileCompressedTask.Create(aStream: TKMemoryStream; const aFileName, aMarker, aWorkName: string);
+begin
+  inherited Create(aWorkName);
+
+  Stream := aStream;
+  FileName := aFileName;
+  Marker := aMarker;
+end;
+
+procedure TKMSaveToFileCompressedTask.exec;
+begin
+  try
+    Stream.SaveToFileCompressed(FileName, Marker);
+  finally
+    Stream.Free;
+  end;
+end;
+
+constructor TKMSaveStreamsToFileTask.Create(aMainStream, aSubStream1, aSubStream2: TKMemoryStream; const aFileName, aMarker1, aMarker2, aWorkName: string);
+begin
+  inherited Create(aWorkName);
+
+  MainStream := aMainStream;
+  SubStream1 := aSubStream1;
+  SubStream2 := aSubStream2;
+  FileName := aFileName;
+  Marker1 := aMarker1;
+  Marker2 := aMarker2;
+end;
+
+procedure TKMSaveStreamsToFileTask.exec;
+begin
+  try
+    MainStream.AppendStream(SubStream1, Marker1);
+    MainStream.AppendStream(SubStream2, Marker2);
+    MainStream.SaveToFile(FileName);
+  finally
+    SubStream1.Free;
+    SubStream2.Free;
+    MainStream.Free;
+  end;
+end;
 
 {$IF DEFINED(WDC) OR (FPC_FULLVERSION >= 30200)}
 class procedure TKMemoryStream.AsyncSaveToFileAndFree(var aStream: TKMemoryStream; const aFileName: string; aWorkerThread: TKMWorkerThread);
-var
-  localStream: TKMemoryStream;
-{$IFDEF WDC}
-  task: TKMWorkerThreadTask;
-{$ENDIF}
 begin
-  localStream := aStream;
-  aStream := nil; //So caller doesn't use it by mistake
-
-  {$IFDEF WDC}
-    task := TKMWorkerThreadTask.Create(procedure
-    begin
-      try
-        localStream.SaveToFile(aFileName);
-      finally
-        localStream.Free;
-      end;
-    end, 'SaveToFile');
-
-    aWorkerThread.Enqueue(task);
-  {$ELSE}
-    try
-      LocalStream.SaveToFile(aFileName);
-    finally
-      LocalStream.Free;
-    end;
-  {$ENDIF}
+  aWorkerThread.Enqueue(TKMSaveToFileTask.Create(aStream, aFileName, 'SaveToFile'));
+  aStream := nil; // So caller doesn't use it by mistake
 end;
-
 
 class procedure TKMemoryStream.AsyncSaveToFileCompressedAndFree(var aStream: TKMemoryStream; const aFileName: string; const aMarker: string;
                                                                 aWorkerThread: TKMWorkerThread);
-var
-  localStream: TKMemoryStream;
-  task: TKMWorkerThreadTask;
 begin
-  localStream := aStream;
-  aStream := nil; //So caller doesn't use it by mistake
-
-  {$IFDEF WDC}
-    task := TKMWorkerThreadTask.Create(procedure
-    begin
-      try
-        localStream.SaveToFileCompressed(aFileName, aMarker);
-      finally
-        localStream.Free;
-      end;
-    end, 'SaveToFileCompressed ' + aMarker);
-
-    aWorkerThread.Enqueue(task);
-  {$ELSE}
-    try
-      LocalStream.SaveToFileCompressed(aFileName, aMarker);
-    finally
-      LocalStream.Free;
-    end;
-  {$ENDIF}
+  aWorkerThread.Enqueue(TKMSaveToFileCompressedTask.Create(aStream, aFileName, aMarker, 'SaveToFileCompressed ' + aMarker));
+  aStream := nil; // So caller doesn't use it by mistake
 end;
-
 
 class procedure TKMemoryStream.AsyncSaveStreamsToFileAndFree(var aMainStream, aSubStream1, aSubStream2: TKMemoryStream; const aFileName: string;
                                                              const aMarker1, aMarker2: string; aWorkerThread: TKMWorkerThread);
-var
-  localSubStream1, localSubStream2, localMainStream: TKMemoryStream;
-{$IFDEF WDC}
-  task: TKMWorkerThreadTask;
-{$ENDIF}
 begin
-  localMainStream := aMainStream;
-  localSubStream1 := aSubStream1;
-  localSubStream2 := aSubStream2;
-  aMainStream := nil; //So caller doesn't use it by mistake
-  aSubStream1 := nil; //So caller doesn't use it by mistake
-  aSubStream2 := nil; //So caller doesn't use it by mistake
-
-  {$IFDEF WDC}
-    task := TKMWorkerThreadTask.Create(procedure
-    begin
-      try
-        localMainStream.AppendStream(localSubStream1, aMarker1);
-        localMainStream.AppendStream(localSubStream2, aMarker2);
-        localMainStream.SaveToFile(aFileName);
-      finally
-        localSubStream1.Free;
-        localSubStream2.Free;
-        localMainStream.Free;
-      end;
-    end, 'SaveStreamsToFile ' + aMarker1 + ' ' + aMarker2);
-
-    aWorkerThread.Enqueue(task);
-  {$ELSE}
-    try
-      localMainStream.AppendStream(localSubStream1, aMarker1);
-      localMainStream.AppendStream(localSubStream2, aMarker2);
-      localMainStream.SaveToFile(aFileName);
-    finally
-      localSubStream1.Free;
-      localSubStream2.Free;
-      localMainStream.Free;
-    end;
-  {$ENDIF}
+  aWorkerThread.Enqueue(TKMSaveStreamsToFileTask.Create(aMainStream, aSubStream1, aSubStream2, aFileName, aMarker1, aMarker2, 'SaveStreamsToFile ' + aMarker1 + ' ' + aMarker2));
+  aMainStream := nil; // So caller doesn't use it by mistake
+  aSubStream1 := nil; // So caller doesn't use it by mistake
+  aSubStream2 := nil; // So caller doesn't use it by mistake
 end;
 {$ENDIF}
-
 
 procedure TKMemoryStream.AppendStream(aStream: TKMemoryStream; const aMarker: string);
 begin
