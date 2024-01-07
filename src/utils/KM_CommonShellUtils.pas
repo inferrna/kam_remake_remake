@@ -75,10 +75,8 @@ begin
 
   FreeMem(pmc);
 end;
-{$ENDIF}
 
 
-{$IFNDEF Unix}
 function GetCommittedStackSize: NativeUInt;
 //NB: Win32 uses FS, Win64 uses GS as base for Thread Information Block.
 asm
