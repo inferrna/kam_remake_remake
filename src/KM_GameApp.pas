@@ -1383,9 +1383,11 @@ end;
 
 
 procedure TKMGameApp.UpdatePerflog;
+{$IFNDEF Unix}
 {$IFDEF PERFLOG}
 var
   memUsed, stackUsed: NativeUInt;
+{$ENDIF}
 {$ENDIF}
 begin
   {$IFNDEF Unix}
