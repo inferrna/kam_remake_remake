@@ -155,6 +155,7 @@
       <Unit14>
         <Filename Value="src\KM_Main.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <TopLine Value="139"/>
         <CursorPos X="48" Y="156"/>
         <UsageCount Value="66"/>
@@ -1361,10 +1362,9 @@
       <Unit140>
         <Filename Value="src\hands\KM_Hand.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="407"/>
-        <CursorPos X="36" Y="413"/>
+        <CursorPos X="41" Y="421"/>
         <UsageCount Value="66"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2924,7 +2924,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="25" Y="14"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit307>
       <Unit308>
