@@ -86,8 +86,8 @@ end;
 //Push item onto heap, maintaining the heap invariant.
 procedure TObjectBinaryHeap<T>.Push(aItem: T);
 begin
-   if Length(fItems) <= fCount then
-     SetLength(fItems, Round(fCount * BINARY_HEAP_GEN_GROW_FACTOR));
+  if Length(fItems) <= fCount then
+    SetLength(fItems, Round(fCount * BINARY_HEAP_GEN_GROW_FACTOR));
 
    fItems[fCount] := aItem;
    Inc(fCount);
