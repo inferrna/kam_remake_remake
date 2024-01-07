@@ -342,7 +342,7 @@ begin
 
     keyArray := fSavePoints.Keys.ToArray;
     {$IFNDEF FPC}
-    TArray.Sort<Integer>(keyArray);
+    TArray.Sort<Cardinal>(keyArray);
     {$ELSE}
     SortCustom(keyArray, Low(keyArray), High(keyArray), SizeOf(keyArray[0]), CompareKeys);
     {$ENDIF}
