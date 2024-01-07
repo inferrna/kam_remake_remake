@@ -117,83 +117,43 @@ type
     cpLogs: TCategoryPanel;
     cpGameAdv: TCategoryPanel;
     cpPerfLogs: TCategoryPanel;
-    chkSnowHouses: TCheckBox;
-    chkInterpolatedRender: TCheckBox;
     chkLoadUnsupSaves: TCheckBox;
     chkJamMeter: TCheckBox;
     chkShowTerrainOverlays: TCheckBox;
     chkDebugScripting: TCheckBox;
-    chkLogSkipTempCmd: TCheckBox;
-    chkShowDefencesAnimate: TCheckBox;
-    chkShowArmyVectorFieldEnemy: TCheckBox;
-    chkShowArmyVectorFieldAlly: TCheckBox;
-    chkShowClusters: TCheckBox;
-    chkShowAlliedGroups: TCheckBox;
     chkHeight: TCheckBox;
-    chkTreeAge: TCheckBox;
-    chkFieldAge: TCheckBox;
-    chkTileLock: TCheckBox;
-    chkTileOwner: TCheckBox;
-    chkTileUnit: TCheckBox;
-    chkVertexUnit: TCheckBox;
-    chkTileObject: TCheckBox;
-
-    chkSupervisor: TCheckBox;
     cpScripting: TCategoryPanel;
-    chkShowDefencePos: TCheckBox;
-    chkShowUnitRadius: TCheckBox;
-    chkShowTowerRadius: TCheckBox;
-    chkShowMiningRadius: TCheckBox;
     chkShowDeposits: TCheckBox;
-    chkShowOverlays: TCheckBox;
-    chkShowUnits: TCheckBox;
-    chkShowHouses: TCheckBox;
-    chkShowObjects: TCheckBox;
-    chkShowFlatTerrain: TCheckBox;
-
     sePauseBeforeTick: TSpinEdit;
     Label8: TLabel;
     Label9: TLabel;
     seMakeSaveptBeforeTick: TSpinEdit;
     Label12: TLabel;
     seCustomSeed: TSpinEdit;
-    chkUIFocusedControl: TCheckBox;
-    chkUIControlOver: TCheckBox;
-    chkPaintSounds: TCheckBox;
     cpMisc: TCategoryPanel;
-    chkBevel: TCheckBox;
-    rgDebugFont: TRadioGroup;
     mnExportRPL: TMenuItem;
-    chkPathfinding: TCheckBox;
     chkGipAsBytes: TCheckBox;
     cpDebugInput: TCategoryPanel;
-    gbFindObjByUID: TGroupBox;
     Label14: TLabel;
     Label15: TLabel;
     Label13: TLabel;
-    seFindObjByUID: TSpinEdit;
     btFindObjByUID: TButton;
-    seEntityUID: TSpinEdit;
-    seWarriorUID: TSpinEdit;
-    GroupBox2: TGroupBox;
     Label10: TLabel;
     Label11: TLabel;
     seDebugValue: TSpinEdit;
     edDebugText: TEdit;
-    chkFindObjByUID: TCheckBox;
-    tbWaterLight: TTrackBar;
-    lblWaterLight: TLabel;
-    chkSkipRenderText: TCheckBox;
     {$ENDIF}
     {$IFDEF FPC}
     mainGroup: TGroupBox;
-    cpGameControls: TMyRollOut;
-    GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     GroupBoxLogs: TGroupBox;
+    cpGameControls: TMyRollOut;
     cpPerfLogs: TMyRollOut;
+    cpDebugInput: TMyRollOut;
+    {$ENDIF}
+    GroupBox2: TGroupBox;
     chkShowFlatTerrain: TCheckBox;
     tbWaterLight: TTrackBar;
     seFindObjByUID: TSpinEdit;
@@ -202,13 +162,37 @@ type
     chkSnowHouses: TCheckBox;
     chkInterpolatedRender: TCheckBox;
     chkShowObjects: TCheckBox;
-    chkShowOverlays: TCheckBox;
-    chkShowUnits: TCheckBox;
     chkShowHouses: TCheckBox;
     rgDebugFont: TRadioGroup;
-    cpDebugInput: TMyRollOut;
     chkFindObjByUID: TCheckBox;
-    {$ENDIF}
+    seEntityUID: TSpinEdit;
+    seWarriorUID: TSpinEdit;
+    chkTileOwner: TCheckBox;
+    chkTileObject: TCheckBox;
+    chkTreeAge: TCheckBox;
+    chkFieldAge: TCheckBox;
+    chkTileLock: TCheckBox;
+    chkTileUnit: TCheckBox;
+    chkVertexUnit: TCheckBox;
+    chkShowUnits: TCheckBox;
+    chkShowOverlays: TCheckBox;
+    chkShowMiningRadius: TCheckBox;
+    chkShowDefencePos: TCheckBox;
+    chkShowUnitRadius: TCheckBox;
+    chkShowTowerRadius: TCheckBox;
+    chkPaintSounds: TCheckBox;
+    gbFindObjByUID: TGroupBox;
+    chkShowDefencesAnimate: TCheckBox;
+    chkPathfinding: TCheckBox;
+    chkSupervisor: TCheckBox;
+    chkShowArmyVectorFieldEnemy: TCheckBox;
+    chkShowArmyVectorFieldAlly: TCheckBox;
+    chkShowClusters: TCheckBox;
+    chkShowAlliedGroups: TCheckBox;
+    chkUIFocusedControl: TCheckBox;
+    chkUIControlOver: TCheckBox;
+    chkSkipRenderText: TCheckBox;
+    lblWaterLight: TLabel;
     N5: TMenuItem;
     LoadSavThenRpl: TMenuItem;
     N7: TMenuItem;
@@ -1418,10 +1402,10 @@ end;
 function TFormMain.AllowFindObjByUID: Boolean;
 begin
   Result := // Update values only if Debug panel is opened or if we are debugging
-       (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
-         or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
-       and chkFindObjByUID.Checked     // and checkbox is checked
-       and gMain.IsDebugChangeAllowed; // and not in MP
+        (((fDevSettings.DebugFormState <> fsNone) and not cpDebugInput.Collapsed)
+          or {$IFDEF DEBUG} True {$ELSE} False {$ENDIF}) // But its ok if we are in Debug build
+        and chkFindObjByUID.Checked     // and checkbox is checked
+        and gMain.IsDebugChangeAllowed; // and not in MP
 end;
 
 
@@ -1429,17 +1413,17 @@ procedure TFormMain.SetEntitySelected(aEntityUID: Integer; aEntity2UID: Integer)
 begin
   if not AllowFindObjByUID then Exit;
 
-  // seEntityUID.SetValueWithoutChange(aEntityUID);
-  // seWarriorUID.SetValueWithoutChange(aEntity2UID);
+  seEntityUID.SetValueWithoutChange(aEntityUID);
+  seWarriorUID.SetValueWithoutChange(aEntity2UID);
 
   if GetKeyState(VK_MENU) < 0 then
-    // seFindObjByUID.Value := aEntityUID // will trigger OnChange
+    seFindObjByUID.Value := aEntityUID // will trigger OnChange
   else
   if GetKeyState(VK_SHIFT) < 0 then
   begin
     if aEntity2UID = UID_NONE then
       aEntity2UID := aEntityUID;
-    // seFindObjByUID.Value := aEntity2UID; // will trigger OnChange
+    seFindObjByUID.Value := aEntity2UID; // will trigger OnChange
   end
 end;
 
@@ -1475,27 +1459,27 @@ begin
     chkShowWires.       SetCheckedWithoutClick(SHOW_TERRAIN_WIRES);
     chkShowTerrainIds.  SetCheckedWithoutClick(SHOW_TERRAIN_IDS);
     chkShowTerrainKinds.SetCheckedWithoutClick(SHOW_TERRAIN_KINDS);
-    // chkTilesGrid.       SetCheckedWithoutClick(SHOW_TERRAIN_TILES_GRID);
-    // chkTileOwner.       SetCheckedWithoutClick(SHOW_TILES_OWNER);
-    // chkTileObject.      SetCheckedWithoutClick(SHOW_TILE_OBJECT_ID);
-    // chkTreeAge.         SetCheckedWithoutClick(SHOW_TREE_AGE);
-    // chkFieldAge.        SetCheckedWithoutClick(SHOW_FIELD_AGE);
-    // chkTileLock.        SetCheckedWithoutClick(SHOW_TILE_LOCK);
-    // chkTileUnit.        SetCheckedWithoutClick(SHOW_TILE_UNIT);
-    // chkVertexUnit.      SetCheckedWithoutClick(SHOW_VERTEX_UNIT);
+    chkTilesGrid.       SetCheckedWithoutClick(SHOW_TERRAIN_TILES_GRID);
+    chkTileOwner.       SetCheckedWithoutClick(SHOW_TILES_OWNER);
+    chkTileObject.      SetCheckedWithoutClick(SHOW_TILE_OBJECT_ID);
+    chkTreeAge.         SetCheckedWithoutClick(SHOW_TREE_AGE);
+    chkFieldAge.        SetCheckedWithoutClick(SHOW_FIELD_AGE);
+    chkTileLock.        SetCheckedWithoutClick(SHOW_TILE_LOCK);
+    chkTileUnit.        SetCheckedWithoutClick(SHOW_TILE_UNIT);
+    chkVertexUnit.      SetCheckedWithoutClick(SHOW_VERTEX_UNIT);
     chkShowRoutes.      SetCheckedWithoutClick(SHOW_UNIT_ROUTES);
     chkShowRoutesSteps. SetCheckedWithoutClick(SHOW_UNIT_ROUTES_STEPS);
     chkSelectionBuffer. SetCheckedWithoutClick(SHOW_SEL_BUFFER);
 
-    // chkShowObjects.     SetCheckedWithoutClick(mlObjects            in gGameParams.VisibleLayers);
-    // chkShowHouses.      SetCheckedWithoutClick(mlHouses             in gGameParams.VisibleLayers);
-    // chkShowUnits.       SetCheckedWithoutClick(mlUnits              in gGameParams.VisibleLayers);
-    // chkShowOverlays.    SetCheckedWithoutClick(mlOverlays           in gGameParams.VisibleLayers);
-    // chkShowMiningRadius.SetCheckedWithoutClick(mlMiningRadius       in gGameParams.VisibleLayers);
-    // chkShowTowerRadius. SetCheckedWithoutClick(mlTowersAttackRadius in gGameParams.VisibleLayers);
-    // chkShowUnitRadius.  SetCheckedWithoutClick(mlUnitsAttackRadius  in gGameParams.VisibleLayers);
-    // chkShowDefencePos.  SetCheckedWithoutClick(mlDefencesAll        in gGameParams.VisibleLayers);
-    // chkShowFlatTerrain. SetCheckedWithoutClick(mlFlatTerrain        in gGameParams.VisibleLayers);
+    chkShowObjects.     SetCheckedWithoutClick(mlObjects            in gGameParams.VisibleLayers);
+    chkShowHouses.      SetCheckedWithoutClick(mlHouses             in gGameParams.VisibleLayers);
+    chkShowUnits.       SetCheckedWithoutClick(mlUnits              in gGameParams.VisibleLayers);
+    chkShowOverlays.    SetCheckedWithoutClick(mlOverlays           in gGameParams.VisibleLayers);
+    chkShowMiningRadius.SetCheckedWithoutClick(mlMiningRadius       in gGameParams.VisibleLayers);
+    chkShowTowerRadius. SetCheckedWithoutClick(mlTowersAttackRadius in gGameParams.VisibleLayers);
+    chkShowUnitRadius.  SetCheckedWithoutClick(mlUnitsAttackRadius  in gGameParams.VisibleLayers);
+    chkShowDefencePos.  SetCheckedWithoutClick(mlDefencesAll        in gGameParams.VisibleLayers);
+    chkShowFlatTerrain. SetCheckedWithoutClick(mlFlatTerrain        in gGameParams.VisibleLayers);
   finally
     fUpdating := False;
   end;
@@ -1548,7 +1532,11 @@ begin
   RenderArea.Top    := 0;
   RenderArea.Height := ClientHeight;
   RenderArea.Width  := ClientWidth;
-  // gMain.Resize(RenderArea.Width, RenderArea.Height, GetWindowParams);
+  {$IFDEF MSWindows}
+  gMain.Resize(RenderArea.Width, RenderArea.Height, GetWindowParams);
+  {$ELSE}
+  gMain.Resize(RenderArea.Width, RenderArea.Height);
+  {$ENDIF}
 end;
 
 
@@ -1665,10 +1653,10 @@ begin
 
     SKIP_RENDER := chkSkipRender.Checked;
     SKIP_SOUND := chkSkipSound.Checked;
-    // DISPLAY_SOUNDS := chkPaintSounds.Checked;
+    DISPLAY_SOUNDS := chkPaintSounds.Checked;
     SHOW_VIEWPORT_POS := chkViewportPos.Checked;
 
-    // gbFindObjByUID.Enabled := chkFindObjByUID.Checked;
+    gbFindObjByUID.Enabled := chkFindObjByUID.Checked;
 
     if AllowFindObjByUID then
       btFindObjByUIDClick(nil)
@@ -1681,15 +1669,15 @@ begin
   begin
     SHOW_AI_WARE_BALANCE := chkShowBalance.Checked;
     OVERLAY_DEFENCES := chkShowDefences.Checked;
-    // OVERLAY_DEFENCES_A := chkShowDefencesAnimate.Checked;
+    OVERLAY_DEFENCES_A := chkShowDefencesAnimate.Checked;
     OVERLAY_AI_BUILD := chkBuild.Checked;
     OVERLAY_AI_COMBAT := chkCombat.Checked;
-    // OVERLAY_AI_PATHFINDING := chkPathfinding.Checked;
-    // OVERLAY_AI_SUPERVISOR := chkSupervisor.Checked;
-    // OVERLAY_AI_VEC_FLD_ENEM := chkShowArmyVectorFieldEnemy.Checked;
-    // OVERLAY_AI_VEC_FLD_ALLY := chkShowArmyVectorFieldAlly.Checked;
-    // OVERLAY_AI_CLUSTERS := chkShowClusters.Checked;
-    // OVERLAY_AI_ALLIEDGROUPS := chkShowAlliedGroups.Checked;
+    OVERLAY_AI_PATHFINDING := chkPathfinding.Checked;
+    OVERLAY_AI_SUPERVISOR := chkSupervisor.Checked;
+    OVERLAY_AI_VEC_FLD_ENEM := chkShowArmyVectorFieldEnemy.Checked;
+    OVERLAY_AI_VEC_FLD_ALLY := chkShowArmyVectorFieldAlly.Checked;
+    OVERLAY_AI_CLUSTERS := chkShowClusters.Checked;
+    OVERLAY_AI_ALLIEDGROUPS := chkShowAlliedGroups.Checked;
     OVERLAY_AI_EYE := chkAIEye.Checked;
     OVERLAY_AI_SOIL := chkShowSoil.Checked;
     OVERLAY_AI_FLATAREA := chkShowFlatArea.Checked;
@@ -1708,9 +1696,9 @@ begin
   SHOW_CONTROLS_OVERLAY := chkUIControlsBounds.Checked;
   SHOW_TEXT_OUTLINES := chkUITextBounds.Checked;
   SHOW_CONTROLS_ID := chkUIControlsID.Checked;
-  // SHOW_FOCUSED_CONTROL := chkUIFocusedControl.Checked;
-  // SHOW_CONTROL_OVER := chkUIControlOver.Checked;
-  // SKIP_RENDER_TEXT := chkSkipRenderText.Checked;
+  SHOW_FOCUSED_CONTROL := chkUIFocusedControl.Checked;
+  SHOW_CONTROL_OVER := chkUIControlOver.Checked;
+  SKIP_RENDER_TEXT := chkSkipRenderText.Checked;
   DBG_UI_HINT_POS := chkCursorCoordinates.Checked;
 
   {$IFDEF WDC} // one day update .lfm for lazarus...
@@ -1736,8 +1724,8 @@ begin
     end;
     HOUSE_BUILDING_STEP := tbBuildingStep.Position / tbBuildingStep.Max;
 
-    // WATER_LIGHT_MULTIPLIER := tbWaterLight.Position / 100;
-    // lblWaterLight.Caption := 'Water light x' + ReplaceStr(FormatFloat('0.##', WATER_LIGHT_MULTIPLIER), ',', '.');
+    WATER_LIGHT_MULTIPLIER := tbWaterLight.Position / 100;
+    lblWaterLight.Caption := 'Water light x' + ReplaceStr(FormatFloat('0.##', WATER_LIGHT_MULTIPLIER), ',', '.');
   end;
 
   //Logs
@@ -1796,8 +1784,8 @@ begin
   //Misc
   if allowDebugChange then
   begin
-    // SHOW_DEBUG_OVERLAY_BEVEL := chkBevel.Checked;
-    // DEBUG_TEXT_FONT_ID := rgDebugFont.ItemIndex;
+    SHOW_DEBUG_OVERLAY_BEVEL := chkBevel.Checked;
+    DEBUG_TEXT_FONT_ID := rgDebugFont.ItemIndex;
   end;
 
   if gGameApp.Game <> nil then
@@ -2174,13 +2162,13 @@ end;
 procedure TFormMain.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 {$IFNDEF MSWINDOWS}
 // var
-  // handled: Boolean;
+//  handled: Boolean;
 {$ENDIF}
 begin
   // We use WM_MOUSEWHEEL message handler on Windows, since it prevents some bugs from happaning
   // F.e. on Win10 it was reported, that we got event 3 times on single turn of mouse wheel, if use default form event handler
 {$IFNDEF MSWINDOWS}
-  // handled := False;
+  handled := False;
   gGameApp.MouseWheel(Shift, GetMouseWheelStepsCnt(WheelDelta), RenderArea.ScreenToClient(MousePos).X, RenderArea.ScreenToClient(MousePos).Y, handled);
 {$ENDIF}
 end;
@@ -2188,8 +2176,11 @@ end;
 
 function TFormMain.GetMouseWheelStepsCnt(aWheelData: Integer): Integer;
 begin
-  // Result := aWheelData div WHEEL_DELTA;
-  Result := 0;
+  {$IFNDEF FPC}
+  Result := aWheelData div WHEEL_DELTA;
+  {$ELSE}
+  Result := aWheelData div 120;
+  {$ENDIF}
 end;
 
 

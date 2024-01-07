@@ -89,10 +89,10 @@ begin
   if Length(fItems) <= fCount then
     SetLength(fItems, Round(fCount * BINARY_HEAP_GEN_GROW_FACTOR));
 
-   fItems[fCount] := aItem;
-   Inc(fCount);
+  fItems[fCount] := aItem;
+  Inc(fCount);
 
-   _siftdown(0, fCount - 1);
+  _siftdown(0, fCount - 1);
 end;
 
 

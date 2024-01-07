@@ -3,7 +3,7 @@ unit KM_InterfaceDefaults;
 interface
 uses
   {$IFDEF MSWindows} Windows, {$ENDIF}
-  {$IFDEF Unix} LCLType, {$ENDIF}
+  {$IFDEF Unix} LCLIntF, LCLType, {$ENDIF}
   Classes,
   Controls,
   KM_Controls, KM_ControlsBase,
