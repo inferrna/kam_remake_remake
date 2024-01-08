@@ -260,10 +260,10 @@ procedure TKMCampaignsCollection.SortCampaigns;
     I := idxFirst;
     L := idxLast;
 
-    while I < idxLast do
+    while I < L do
     begin
          J := I;
-         for K := J + 1 to idxLast do
+         for K := J + 1 to L do
              if Comp(aList.List[K], aList.List[J]) then
                 J := K;
          if (I <> J) then
