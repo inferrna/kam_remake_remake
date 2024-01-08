@@ -694,7 +694,7 @@ end;
 
 function Max3I(const A,B,C: Integer): Integer;
 begin
-  Result := Max(A, B, C);
+  Result := Max3(A, B, C);
 end;
 
 function Min3(const A,B,C: Integer): Integer;
