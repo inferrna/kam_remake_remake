@@ -276,10 +276,6 @@ begin
   {$ENDIF}
 end;
 
-{$IFDEF UNIX}
-function AtomicExchange (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGE';
-{$ENDIF}
-
 { TKMSpritePack }
 constructor TKMSpritePack.Create(aRT: TRXType; aTemp: Boolean = False);
 begin
