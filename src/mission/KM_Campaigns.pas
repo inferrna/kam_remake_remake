@@ -218,13 +218,22 @@ end;
 
 // Return True if A is considered less (<) than B, False otherwise
 function TKMCampaignComparator(constref A, B: TKMCampaign): Boolean;
+var
+  aPrio, bPrio: Integer;
 begin
-  //TSK is first
-  Result := ((A.ShortName = 'TSK') and (B.ShortName <> 'TSK'))
-  //TPR is second
-            or ((A.ShortName = 'TPR') and ((B.ShortName <> 'TSK') and (B.ShortName <> 'TPR')))
-  //Others are left in existing order (alphabetical)
-            or (A.ShortName < B.ShortName);
+  // TSK goes first
+  if      A.ShortName = 'TSK' then aPrio := 0
+  // TPR goes second
+  else if A.ShortName = 'TPR' then aPrio := 1
+  // Others goes lexicographically sorted
+  else                             aPrio := 2;
+
+  if      B.ShortName = 'TSK' then bPrio := 0
+  else if B.ShortName = 'TPR' then bPrio := 1
+  else                             bPrio := 2;
+
+  Result := (aPrio < bPrio)
+             or ((2 = aPrio) and (aPrio = bPrio) and (A.ShortName < B.ShortName));
 end;
 
 
@@ -266,9 +275,9 @@ procedure TKMCampaignsCollection.SortCampaigns;
 
 begin
   {$IFNDEF FPC}
-  SelectionSort(fList, 0, Count - 1, TKMCampaignComparator);
+  SelectionSort(fList, 0, Count - 1, @TKMCampaignComparator);
   {$ELSE}
-  fList.Sort(TKMCampaignComparer.Create(TKMCampaignComparatorThreeWay));
+  fList.Sort(TKMCampaignComparer.Create(@TKMCampaignComparatorThreeWay));
   {$ENDIF}
 end;
 
