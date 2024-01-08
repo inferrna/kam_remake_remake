@@ -178,8 +178,11 @@ uses
   ;
 
 type
+  {$IFNDEF FPC}
   TKMCampaignCompType = Function(constref A, B: TKMCampaign) : Boolean;
+  {$ELSE}
   TKMCampaignComparer = TDelegatedComparerFunc<TKMCampaign>;
+  {$ENDIF}
 
 
 const
@@ -251,7 +254,7 @@ end;
 procedure TKMCampaignsCollection.SortCampaigns;
 
   {$IFNDEF FPC}
-  procedure SelectionSort(var aList : TList<TKMCampaign>; idxFirst, idxLast : Integer; Comp : TKMCampaignCompType);
+  procedure SelectionSort(var aList: TList<TKMCampaign>; idxFirst, idxLast: Integer; Comp: TKMCampaignCompType);
   var
     I, K, L, J: Integer;
   begin
