@@ -96,7 +96,6 @@ type
     procedure UnlockAllMissions;
   end;
 
-
   TKMCampaignEvent = procedure (aCampaign: TKMCampaign) of object;
 
   TKMCampaignsScanner = class(TThread)
@@ -179,6 +178,9 @@ const
   CAMP_HEADER_V2 = $BEEF;
   CAMP_HEADER_V3 = $CEED;
 
+type
+  TKMCampaignPredType = function(const A: TKMCampaign) : Boolean;
+  TKMCampaignCompType = function(const A, B: TKMCampaign) : Boolean;
 
 { TCampaignsCollection }
 constructor TKMCampaignsCollection.Create;
@@ -207,29 +209,89 @@ begin
   inherited;
 end;
 
+// Return True if the item's short name is TSK
+// Otherwise Return False
+function IsShortNameTSK(const A: TKMCampaign): Boolean;
+begin
+  Result := 'TSK' = A.ShortName;
+end;
 
-procedure TKMCampaignsCollection.SortCampaigns;
+// Return True if the item's short name is TPR
+// Otherwise Return False
+function IsShortNameTPR(const A: TKMCampaign): Boolean;
+begin
+  Result := 'TPR' = A.ShortName;
+end;
 
-  //Return True if items should be exchanged
-  function Compare(A, B: TKMCampaign): Boolean;
+// Return True if the first item's shortname is lexicographically less than the second item's shortname
+// Otherwise Return False
+function IsShortnameLexicographicallyLess(const A, B: TKMCampaign): Boolean;
+begin
+  Result := A.ShortName < B.ShortName;
+end;
+
+function Partition(var aList : TList<TKMCampaign>; idxFirst, idxLast : Integer; Pred : TKMCampaignPredType) : Integer;
+var
+  I, K, L: Integer;
+begin
+  Result := idxLast + 1;
+
+  if not (idxFirst < idxLast) then Exit;
+
+  I := idxFirst;
+  L := idxLast;
+
+  while (I <= L) and Pred(aList.List[I]) do
   begin
-    //TSK is first
-    if      A.ShortName = 'TSK' then Result := False
-    else if B.ShortName = 'TSK' then Result := True
-    //TPR is second
-    else if A.ShortName = 'TPR' then Result := False
-    else if B.ShortName = 'TPR' then Result := True
-    //Others are left in existing order (alphabetical)
-    else                            Result := False;
+    Inc(I);
   end;
 
+  for K := I + 1 to L do
+  begin
+    if Pred(aList.List[K]) then
+    begin
+      SwapInt(NativeUInt(aList.List[I]), NativeUInt(aList.List[K]));
+      Inc(I);
+    end;
+  end;
+
+  Result := I;
+end;
+
+procedure SelectionSort(var aList : TList<TKMCampaign>; idxFirst, idxLast : Integer; Comp : TKMCampaignCompType) : Integer;
 var
-  I, K: Integer;
+  I, K, L, J: Integer;
 begin
-  // for I := 0 to Count - 1 do
-  //   for K := I to Count - 1 do
-  //     if Compare(Campaigns[I], Campaigns[K]) then
-  //       SwapInt(NativeUInt(fList.List[I]), NativeUInt(fList.List[K]));
+  if not (idxFirst < idxLast) then Exit;
+
+  I := idxFirst;
+  L := idxLast;
+
+  while I < idxLast do
+  begin
+       J := I;
+       for K := J + 1 to idxLast do
+           if Comp(fList.List[K], fList.List[J]) then
+              J := K;
+       if (I <> J)
+          SwapInt(NativeUInt(fList.List[I]), NativeUInt(fList.List[J]));
+       Inc(I);
+  end;
+end;
+
+procedure TKMCampaignsCollection.SortCampaigns;
+var
+  I, K, J: Integer;
+begin
+  if Count < 2 then Exit;
+  // First step of the algorithm is a list partitioning so that TSK goes first
+  I := Partition(fList, 0, Count - 1, IsShortNameTSK);
+  // Second step of the algorithm is for the second half of partitioned list to be partitioned
+  // so that TPR goes first
+  I := Partition(fList, I, Count - 1, IsShortNameTPR);
+  // Third step is an appropriate sorting the last part of partitioned list with respect to shortname
+  // Use selection sorting algorithm, no matter
+  SelectionSort(fList, I, Count - 1, IsShortnameLexicographicallyLess);
 end;
 
 
