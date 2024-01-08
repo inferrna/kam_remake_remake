@@ -196,9 +196,9 @@ begin
     //Draw quads
     gRenderAux.SetColor(fillColor); //Setting color initially will be much faster, than calling it on every cell
     for J := 0 to gTerrain.MapY - 1 do
-     for K := 0 to gTerrain.MapX - 1 do
-       if fAreaTilesLand[J, K] then
-         gRenderAux.QuadI(K + 1, J + 1); //gTerrain is 1-based...
+      for K := 0 to gTerrain.MapX - 1 do
+        if fAreaTilesLand[J, K] then
+          gRenderAux.QuadI(K + 1, J + 1); //gTerrain is 1-based...
 
     if not fMarchingSquares.IdentifyPerimeters(fBorderPoints) then
       Continue;
