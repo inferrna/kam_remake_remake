@@ -209,12 +209,14 @@ begin
   inherited;
 end;
 
+
 // Return True if the item's short name is TSK
 // Otherwise Return False
 function IsShortNameTSK(const A: TKMCampaign): Boolean;
 begin
   Result := 'TSK' = A.ShortName;
 end;
+
 
 // Return True if the item's short name is TPR
 // Otherwise Return False
@@ -223,12 +225,14 @@ begin
   Result := 'TPR' = A.ShortName;
 end;
 
+
 // Return True if the first item's shortname is lexicographically less than the second item's shortname
 // Otherwise Return False
 function IsShortnameLexicographicallyLess(const A, B: TKMCampaign): Boolean;
 begin
   Result := A.ShortName < B.ShortName;
 end;
+
 
 function Partition(var aList : TList<TKMCampaign>; idxFirst, idxLast : Integer; Pred : TKMCampaignPredType) : Integer;
 var
@@ -258,6 +262,7 @@ begin
   Result := I;
 end;
 
+
 procedure SelectionSort(var aList : TList<TKMCampaign>; idxFirst, idxLast : Integer; Comp : TKMCampaignCompType) : Integer;
 var
   I, K, L, J: Integer;
@@ -278,6 +283,7 @@ begin
        Inc(I);
   end;
 end;
+
 
 procedure TKMCampaignsCollection.SortCampaigns;
 var
