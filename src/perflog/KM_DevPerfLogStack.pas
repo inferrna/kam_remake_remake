@@ -211,7 +211,7 @@ begin
     secTime := secTime - totalTime;
     totalTime := totalTime + secTime;
     {$IF NOT (DEFINED(WDC64) OR DEFINED(Unix))} // Just ignore it on WDC x64 and Unix for now...
-    aList.AddObject(fSectionNames[I], TObject(PtrSingle(secTime)));
+    aList.AddObject(fSectionNames[I], TObject(secTime));
     {$ENDIF}
   end;
 
