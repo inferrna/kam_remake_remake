@@ -276,6 +276,7 @@ begin
   {$ENDIF}
 end;
 
+
 { TKMSpritePack }
 constructor TKMSpritePack.Create(aRT: TRXType; aTemp: Boolean = False);
 begin
