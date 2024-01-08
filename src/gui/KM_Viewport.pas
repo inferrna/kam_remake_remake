@@ -4,8 +4,13 @@ interface
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}
   KM_CommonClasses, KM_CommonTypes, KM_Points
+  {$IFDEF Unix}
+  , Mouse
+  {$ENDIF}
   {$IFDEF FPC}
+  {$IFDEF Unix}
   , Types
+  {$ENDIF}
   {$ENDIF}
   ;
 
@@ -401,7 +406,8 @@ begin
     if not Windows.GetCursorPos(mousePos) then Exit;
   {$ENDIF}
   {$IFDEF Unix}
-    // MousePos := Mouse.CursorPos;
+    MousePos.X := GetMouseX;
+    MousePos.Y := GetMouseY;
   {$ENDIF}
   if not gMain.GetScreenBounds(screenBounds) then Exit;
 

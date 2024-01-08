@@ -8,6 +8,7 @@ uses
   KM_MapEdTypes,
   KM_TerrainTypes;
 
+
 type
   TKMCursor = class
   private
