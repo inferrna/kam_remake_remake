@@ -228,8 +228,8 @@ begin
   if      A.ShortName = 'TSK' then aPrio := 0
   // TPR goes second
   else if A.ShortName = 'TPR' then aPrio := 1
-  // Others goes lexicographically sorted
-  else                             aPrio := 2;
+  // Others go lexicographically sorted
+s  else                             aPrio := 2;
 
   if      B.ShortName = 'TSK' then bPrio := 0
   else if B.ShortName = 'TPR' then bPrio := 1
