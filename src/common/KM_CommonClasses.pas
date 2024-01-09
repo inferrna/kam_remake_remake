@@ -421,6 +421,16 @@ type
     procedure Replace(aOldCRC, aNewCRC: Cardinal);
   end;
 
+
+implementation
+uses
+  Math,
+  {$IFDEF FPC} zstream, {$ENDIF}
+  {$IFDEF WDC} ZLib, {$ENDIF}
+  KM_CommonUtils, KM_Defaults;
+
+
+type
   TKMSaveToFileTask = class(TKMWorkerThreadTaskBase)
   private
     Stream: TKMemoryStream;
@@ -453,13 +463,6 @@ type
     procedure exec; override;
   end;
 
-
-implementation
-uses
-  Math,
-  {$IFDEF FPC} zstream, {$ENDIF}
-  {$IFDEF WDC} ZLib, {$ENDIF}
-  KM_CommonUtils, KM_Defaults;
 
 const
   MAPS_CRC_DELIMITER = ':';

@@ -343,6 +343,39 @@ uses
   KM_ServerSettings,
   KM_MapUtils, KM_Utils;
 
+
+type
+  TKMAutoSaveRenameTask = class(TKMWorkerThreadTaskBase)
+  private
+    LocalIsMultiPlayerOrSpec: Boolean;
+  public
+    constructor Create(aLocalIsMultiPlayerOrSpec : Boolean);
+
+    procedure exec; override;
+  end;
+
+
+  TKMPrepareSaveFolderTask = class(TKMWorkerThreadTaskBase)
+  private
+    path : String;
+    SaveByPlayer: Boolean;
+  public
+    constructor Create(aPath : String; aSaveByPlayer: Boolean);
+
+    procedure exec; override;
+  end;
+
+
+  TKMSleepTask = class(TKMWorkerThreadTaskBase)
+  private
+    Milliseconds: Cardinal;
+  public
+    constructor Create(aMilliseconds: Cardinal; aWorkName: String);
+
+    procedure exec; override;
+  end;
+
+
 const
   LAST_SAVES_MAX_CNT = 5; // Max number of save names to collect for crashreport
 
@@ -1412,27 +1445,25 @@ begin
 end;
 
 
+constructor TKMAutoSaveRenameTask.Create(aLocalIsMultiPlayerOrSpec: Boolean);
+begin
+  inherited Create('AutoSaveRename');
+  LocalIsMultiPlayerOrSpec := aLocalIsMultiPlayerOrSpec;
+end;
+
+
+procedure TKMAutoSaveRenameTask.exec;
+begin
+  DoAutoSaveRename(LocalIsMultiPlayerOrSpec);
+end;
+
+
 procedure TKMGame.AutoSave(aTimestamp: TDateTime);
-{$IFDEF WDC}
-var
-  localIsMultiPlayerOrSpec: Boolean;
-  task: TKMWorkerThreadTask;
-{$ENDIF}
 begin
   Save(AUTOSAVE_SAVE_NAME, aTimestamp, fAutoSaveWorkerThreadHolder.Worker); //Save to temp file
-
   //If possible perform file deletion/renaming in a different thread so we don't delay game
-  {$IFDEF WDC}
-    //Avoid accessing Self from async thread, copy required states to local variables
-    localIsMultiPlayerOrSpec := fParams.IsMultiPlayerOrSpec;
-    task := TKMWorkerThreadTask.Create(procedure
-    begin
-      DoAutoSaveRename(localIsMultiPlayerOrSpec);
-    end, 'AutoSaveRename');
-    fAutoSaveWorkerThreadHolder.Worker.Enqueue(task);
-  {$ELSE}
-    DoAutoSaveRename(fParams.IsMultiPlayerOrSpec);
-  {$ENDIF}
+  //Avoid accessing Self from async thread, copy required states to local variables
+  fAutoSaveWorkerThreadHolder.Worker.Enqueue(TKMAutoSaveRenameTask.Create(fParams.IsMultiPlayerOrSpec));
 end;
 
 
@@ -2226,59 +2257,45 @@ begin
   //There is a comment in fGame.Load about MessageList on this topic.
 end;
 
-// procedure foo;
-// begin
-//   path := ExtractFilePath(path);
-//   if DirectoryExists(path) then
-//   begin
-//     // Delete save folder content, since we want to overwrite old saves
-//     if aSaveByPlayer then
-//     begin
-//       // Delete whole folder to the bin
-//       // It looks better have one folder in the bin, than many files
-//       KMDeleteFolderToBin(path);
-//       ForceDirectories(path);
-//     end
-//     else
-//       // Delete all files
-//       KMDeleteFolderContent(path);
-//   end
-//   else
-//     ForceDirectories(path);
-// end
+
+constructor TKMPrepareSaveFolderTask.Create(aPath : String; aSaveByPlayer: Boolean);
+begin
+  inherited Create('Prepare save dir');
+  path := aPath;
+  SaveByPlayer := aSaveByPlayer;
+end;
+
+
+procedure TKMPrepareSaveFolderTask.exec;
+begin
+  path := ExtractFilePath(path);
+  if DirectoryExists(path) then
+  begin
+    // Delete save folder content, since we want to overwrite old saves
+    if SaveByPlayer then
+    begin
+      // Delete whole folder to the bin
+      // It looks better have one folder in the bin, than many files
+      KMDeleteFolderToBin(path);
+      ForceDirectories(path);
+    end
+    else
+      // Delete all files
+      KMDeleteFolderContent(path);
+  end
+  else
+    ForceDirectories(path);
+end;
+
 
 procedure TKMGame.PrepareSaveFolder(const aPathName: String; aSaveByPlayer: Boolean; aSaveWorkerThread: TKMWorkerThread);
-var
-  path: string;
-  // task: TKMWorkerThreadTask;
 begin
-  path := aPathName;
   //Makes the folders in case they were deleted.
   //Should do before save Minimap file for MP game
   if (aPathName <> '') then
   begin
     // We can make directories in async too, since all save parts are made in async now
-    // task := TKMWorkerThreadTask.Create(procedure
-    // begin
-    //   path := ExtractFilePath(path);
-    //   if DirectoryExists(path) then
-    //   begin
-    //     // Delete save folder content, since we want to overwrite old saves
-    //     if aSaveByPlayer then
-    //     begin
-    //       // Delete whole folder to the bin
-    //       // It looks better have one folder in the bin, than many files
-    //       KMDeleteFolderToBin(path);
-    //       ForceDirectories(path);
-    //     end
-    //     else
-    //       // Delete all files
-    //       KMDeleteFolderContent(path);
-    //   end
-    //   else
-    //     ForceDirectories(path);
-    // end, 'Prepare save dir');
-    // aSaveWorkerThread.Enqueue(task);
+    aSaveWorkerThread.Enqueue(TKMPrepareSaveFolderTask.Create(aPathName, aSaveByPlayer));
   end;
 end;
 
@@ -2376,10 +2393,20 @@ begin
   Save(aSaveName, aTimestamp, fSaveWorkerThreadHolder.Worker); // Use default save worker thread
 end;
 
-procedure foo1;
+
+constructor TKMSleepTask.Create(aMilliseconds: Cardinal; aWorkName: String);
 begin
-  Sleep(10000);
+  inherited Create(aWorkName);
+
+  Milliseconds := aMilliseconds;
 end;
+
+
+procedure TKMSleepTask.exec;
+begin
+  Sleep(Milliseconds);
+end;
+
 
 // Saves game by provided name
 procedure TKMGame.Save(const aSaveName: UnicodeString; aTimestamp: TDateTime; aSaveWorkerThread: TKMWorkerThread);
@@ -2387,7 +2414,6 @@ var
   I, index: Integer;
   fullPath, rngPath, mpLocalDataPath, newSaveName, loadFrom: UnicodeString;
   saveByPlayer: Boolean;
-  task: TKMWorkerThreadTask;
 begin
   {$IFDEF PERFLOG}
   gPerfLogs.SectionEnter(psGameSaveWait);
@@ -2412,8 +2438,7 @@ begin
     // Emulate slow save in the async save thread
     if SLOW_GAME_SAVE_ASYNC then
     begin
-      task := TKMWorkerThreadTask.Create(foo1, 'Slow Game Save');
-      aSaveWorkerThread.Enqueue(task);
+      aSaveWorkerThread.Enqueue(TKMSleepTask.Create(10000, 'Slow Game Save'));
     end;
 
     //Convert name to full path+name
