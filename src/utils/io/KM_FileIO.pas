@@ -66,6 +66,16 @@ uses
   StrUtils, KM_CommonUtils,
   KM_Defaults;
 
+type
+  KMCopyFileTask = class(TKMWorkerThreadTaskBase)
+  private
+    Src, Dest: UnicodeString;
+    Overwrite: Boolean;
+  public
+    constructor Create(aSrc, aDest: UnicodeString; aOverwrite: Boolean);
+
+    procedure exec; override;
+  end;
 
 function ReadTextA(const aFilename: UnicodeString): AnsiString;
 var
@@ -177,26 +187,30 @@ begin
   {$ENDIF}
 end;
 
-
 {$IF DEFINED(WDC) OR (FPC_FULLVERSION >= 30200)}
-procedure KMCopyFileAsync(const aSrc, aDest: UnicodeString; aOverwrite: Boolean; aWorkerThread: TKMWorkerThread);
-{$IFDEF WDC}
-var
-  task: TKMWorkerThreadTask;
-{$ENDIF}
-begin
-  {$IFDEF WDC}
-  task := TKMWorkerThreadTask.Create(procedure
-  begin
-    KMCopyFile(aSrc, aDest, aOverwrite);
-  end, 'KMCopyFile');
-  aWorkerThread.Enqueue(task);
-  {$ELSE}
-  KMCopyFile(aSrc, aDest, aOverwrite);
-  {$ENDIF}
-end;
-{$ENDIF}
 
+constructor KMCopyFileTask.Create(aSrc, aDest: UnicodeString; aOverwrite: Boolean);
+begin
+  inherited Create('KMCopyFile');
+
+  Src := aSrc;
+  Dest := aDest;
+  Overwrite := aOverwrite;
+end;
+
+
+procedure KMCopyFileTask.exec;
+begin
+  KMCopyFile(Src, Dest, Overwrite);
+end;
+
+
+procedure KMCopyFileAsync(const aSrc, aDest: UnicodeString; aOverwrite: Boolean; aWorkerThread: TKMWorkerThread);
+begin
+  aWorkerThread.Enqueue(KMCopyFileTask.Create(aSrc, aDest, aOverwrite));
+end;
+
+{$ENDIF}
 
 procedure KMDeleteFileToBin(const aPath: UnicodeString);
 begin
