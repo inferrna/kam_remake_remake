@@ -5,6 +5,9 @@ uses
   SyncObjs, Generics.Collections,
   KM_CommonClasses, KM_WorkerThread
   {$IFDEF FPC}
+  {$IFDEF UNIX}
+  , KM_CommonUtils
+  {$ENDIF}
   , KM_Sort
   {$ENDIF}
   ;
@@ -25,7 +28,7 @@ type
 
   TKMSavePointCollection = class
   private
-    fAsyncThreadsCnt: Byte; //Number of worker threads working atm. Used to make saves or create compressed savepoints
+    fAsyncThreadsCnt: longint; //Number of worker threads working atm. Used to make saves or create compressed savepoints
     fWaitCS: TCriticalSection;
     fSaveCS: TCriticalSection;
     fSavePoints: TDictionary<Cardinal, TKMSavePoint>;
@@ -37,6 +40,10 @@ type
     function GetStream(aTick: Cardinal): TKMemoryStream;
     function GetLastTick: Cardinal;
     procedure SetLastTick(const aLastTick: Cardinal);
+
+    procedure NewSavePointAndFree(aStream: TKMemoryStream; aTick: Cardinal);
+
+    procedure SaveToFile(aFileName: UnicodeString);
   public
     constructor Create;
     destructor Destroy; override;
@@ -53,7 +60,6 @@ type
     function Contains(aTick: Cardinal): Boolean;
     procedure FillTicks(aTicksList: TList<Cardinal>);
 
-    procedure NewSavePoint(aStream: TKMemoryStream; aTick: Cardinal);
     procedure NewSavePointAsyncAndFree(var aStream: TKMemoryStream; aTick: Cardinal; aWorkerThread: TKMWorkerThread);
 
     function LatestPointTickBefore(aTick: Cardinal): Cardinal;
@@ -69,6 +75,33 @@ type
 implementation
 uses
   SysUtils, Classes;
+
+
+type
+  NewSavePointAndFreeProcType = procedure(aStream: TKMemoryStream; aTick: Cardinal) of object;
+
+  NewSavePointAndFreeTask = class(TKMWorkerThreadTaskBase)
+  private
+    Proc: NewSavePointAndFreeProcType;
+    Stream: TKMemoryStream;
+    Tick: Cardinal;
+  public
+    constructor Create(aProc: NewSavePointAndFreeProcType; aStream: TKMemoryStream; aTick: Cardinal); overload;
+
+    procedure exec; override;
+  end;
+
+  SaveToFileProcType = procedure(aFileName: UnicodeString) of object;
+
+  SaveToFileTask = class(TKMWorkerThreadTaskBase)
+  private
+    Proc: SaveToFileProcType;
+    FileName: UnicodeString;
+  public
+    constructor Create(aProc: SaveToFileProcType; aFileName: UnicodeString);
+
+    procedure exec;
+  end;
 
 
 { TKMSavePoint }
@@ -240,14 +273,47 @@ begin
 end;
 
 
-procedure TKMSavePointCollection.NewSavePointAsyncAndFree(var aStream: TKMemoryStream; aTick: Cardinal; aWorkerThread: TKMWorkerThread);
-{$IFDEF WDC}
-var
-  localStream: TKMemoryStream;
-  task: TKMWorkerThreadTask;
-{$ENDIF}
+constructor NewSavePointAndFreeTask.Create(aProc: NewSavePointAndFreeProcType; aStream: TKMemoryStream; aTick: Cardinal);
 begin
-  {$IFDEF WDC}
+  inherited Create('NewSavePointAsyncAndFree');
+
+  Proc := aProc;
+  Stream := aStream;
+  Tick := aTick;
+end;
+
+
+procedure NewSavePointAndFreeTask.exec;
+begin
+  Proc(Stream, Tick);
+end;
+
+
+procedure TKMSavePointCollection.NewSavePointAndFree(aStream: TKMemoryStream; aTick: Cardinal);
+var
+  S: TKMemoryStream;
+begin
+  S := TKMemoryStreamBinary.Create;
+  try
+    aStream.SaveToStreamCompressed(S);
+  finally
+    aStream.Free;
+  end;
+
+  // fSavePoints could be accessed by different threads
+  Lock;
+  try
+    fSavePoints.Add(aTick, TKMSavePoint.Create(S, aTick));
+  finally
+    Unlock;
+  end;
+  // Decrease thread counter
+  AtomicDecrement(fAsyncThreadsCnt);
+end;
+
+
+procedure TKMSavePointCollection.NewSavePointAsyncAndFree(var aStream: TKMemoryStream; aTick: Cardinal; aWorkerThread: TKMWorkerThread);
+begin
   // fSavePoints could be accessed by different threads
   Lock;
   try
@@ -256,63 +322,12 @@ begin
   finally
     Unlock;
   end;
-
-  localStream := aStream;
-  aStream := nil; //So caller doesn't use it by mistake
-
   // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
-
-  task := TKMWorkerThreadTask.Create(
-    procedure
-    var
-      S: TKMemoryStream;
-    begin
-      S := TKMemoryStreamBinary.Create;
-      try
-        localStream.SaveToStreamCompressed(S);
-      finally
-        localStream.Free;
-      end;
-
-      // fSavePoints could be accessed by different threads
-      Lock;
-      try
-        fSavePoints.Add(aTick, TKMSavePoint.Create(S, aTick));
-      finally
-        Unlock;
-      end;
-      // Decrease thread counter
-      AtomicDecrement(fAsyncThreadsCnt);
-    end, 'NewSavePointAsyncAndFree');
-
-  aWorkerThread.Enqueue(task);
-
-  {$ELSE}
-  NewSavePoint(aStream, aTick);
-  {$ENDIF}
+  aWorkerThread.Enqueue(NewSavePointAndFreeTask.Create(Self.NewSavePointAndFree, aStream, aTick));
+  aStream := nil; //So caller doesn't use it by mistake
 end;
 
-
-procedure TKMSavePointCollection.NewSavePoint(aStream: TKMemoryStream; aTick: Cardinal);
-var
-  S: TKMemoryStream;
-begin
-  if Self = nil then Exit;
-
-  Lock;
-  try
-    // Check if we don't have same tick save here too, since we work in multithread environment
-    if fSavePoints.ContainsKey(aTick) then Exit;
-
-    S := TKMemoryStreamBinary.Create;
-    aStream.SaveToStreamCompressed(S);
-
-    fSavePoints.Add(aTick, TKMSavePoint.Create(S, aTick));
-  finally
-    Unlock;
-  end;
-end;
 
 {$IFDEF FPC}
 function CompareKeys(const aKey1, aKey2): Integer;
@@ -362,45 +377,43 @@ begin
 end;
 
 
-procedure TKMSavePointCollection.SaveToFileAsync(const aFileName: UnicodeString; aWorkerThread: TKMWorkerThread);
-{$IFNDEF WDC}
+procedure TKMSavePointCollection.SaveToFile(aFileName: UnicodeString);
 var
   localStream: TKMemoryStream;
-  task: TKMWorkerThreadTask;
-{$ENDIF}
+begin
+  localStream := TKMemoryStreamBinary.Create;
+  try
+    Save(localStream); // Save has Lock / Unlock inside already
+    // Decrease thread counter since we saved all data into thread local stream
+    AtomicDecrement(fAsyncThreadsCnt);
+    localStream.SaveToFile(aFileName);
+  finally
+    localStream.Free;
+  end;
+end;
+
+
+constructor SaveToFileTask.Create(aProc: SaveToFileProcType; aFileName: UnicodeString);
+begin
+  inherited Create('Save SavePoints');
+
+  Proc := aProc;
+  FileName := aFileName;
+end;
+
+
+procedure SaveToFileTask.exec;
+begin
+  Proc(FileName);
+end;
+
+
+procedure TKMSavePointCollection.SaveToFileAsync(const aFileName: UnicodeString; aWorkerThread: TKMWorkerThread);
 begin
   if Self = nil then Exit;
-
-  {$IFDEF WDC}
    // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
-
-  task := TKMWorkerThreadTask.Create(
-    procedure
-    var
-      localStream: TKMemoryStream;
-    begin
-      localStream := TKMemoryStreamBinary.Create;
-      try
-        Save(localStream); // Save has Lock / Unlock inside already
-        // Decrease thread counter since we saved all data into thread local stream
-        AtomicDecrement(fAsyncThreadsCnt);
-        localStream.SaveToFile(aFileName);
-      finally
-        localStream.Free;
-      end;
-    end, 'Save SavePoints');
-
-  aWorkerThread.Enqueue(task);
-  {$ELSE}
-    localStream := TKMemoryStreamBinary.Create;
-    try
-      Save(localStream);
-      localStream.SaveToFile(aFileName);
-    finally
-      localStream.Free;
-    end;
-  {$ENDIF}
+  aWorkerThread.Enqueue(SaveToFileTask.Create(Self.SaveToFile, aFileName));
 end;
 
 
