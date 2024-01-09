@@ -178,11 +178,7 @@ uses
   ;
 
 type
-  {$IFNDEF FPC}
   TKMCampaignCompType = Function(constref A, B: TKMCampaign) : Boolean;
-  {$ELSE}
-  TKMCampaignComparer = TDelegatedComparerFunc<TKMCampaign>;
-  {$ENDIF}
 
 
 const
@@ -280,7 +276,7 @@ begin
   {$IFNDEF FPC}
   SelectionSort(fList, 0, Count - 1, @TKMCampaignComparator);
   {$ELSE}
-  fList.Sort(TKMCampaignComparer.Create(@TKMCampaignComparatorThreeWay));
+  fList.Sort(@TKMCampaignComparatorThreeWay);
   {$ENDIF}
 end;
 
