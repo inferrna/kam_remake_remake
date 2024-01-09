@@ -93,7 +93,7 @@ end;
 
 procedure TKMWorkerThreadTask.exec;
 begin
-  Proc();
+  Proc;
   if Assigned(Callback) then
     Callback(WorkName);
 end;
