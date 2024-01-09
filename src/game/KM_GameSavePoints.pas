@@ -78,27 +78,23 @@ uses
 
 
 type
-  NewSavePointAndFreeProcType = procedure(aStream: TKMemoryStream; aTick: Cardinal) of object;
-
   NewSavePointAndFreeTask = class(TKMWorkerThreadTaskBase)
   private
-    Proc: NewSavePointAndFreeProcType;
+    This: TKMSavePointCollection;
     Stream: TKMemoryStream;
     Tick: Cardinal;
   public
-    constructor Create(aProc: NewSavePointAndFreeProcType; aStream: TKMemoryStream; aTick: Cardinal); overload;
+    constructor Create(aThis: TKMSavePointCollection; aStream: TKMemoryStream; aTick: Cardinal); overload;
 
     procedure exec; override;
   end;
 
-  SaveToFileProcType = procedure(aFileName: UnicodeString) of object;
-
   SaveToFileTask = class(TKMWorkerThreadTaskBase)
   private
-    Proc: SaveToFileProcType;
+    This: TKMSavePointCollection;
     FileName: UnicodeString;
   public
-    constructor Create(aProc: SaveToFileProcType; aFileName: UnicodeString);
+    constructor Create(aThis: TKMSavePointCollection; aFileName: UnicodeString);
 
     procedure exec;
   end;
@@ -273,11 +269,11 @@ begin
 end;
 
 
-constructor NewSavePointAndFreeTask.Create(aProc: NewSavePointAndFreeProcType; aStream: TKMemoryStream; aTick: Cardinal);
+constructor NewSavePointAndFreeTask.Create(aThis: TKMSavePointCollection; aStream: TKMemoryStream; aTick: Cardinal);
 begin
   inherited Create('NewSavePointAsyncAndFree');
 
-  Proc := aProc;
+  This := aThis;
   Stream := aStream;
   Tick := aTick;
 end;
@@ -285,7 +281,7 @@ end;
 
 procedure NewSavePointAndFreeTask.exec;
 begin
-  Proc(Stream, Tick);
+  This.NewSavePointAndFree(Stream, Tick);
 end;
 
 
@@ -324,7 +320,7 @@ begin
   end;
   // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
-  aWorkerThread.Enqueue(NewSavePointAndFreeTask.Create(Self.NewSavePointAndFree, aStream, aTick));
+  aWorkerThread.Enqueue(NewSavePointAndFreeTask.Create(Self, aStream, aTick));
   aStream := nil; //So caller doesn't use it by mistake
 end;
 
@@ -393,18 +389,18 @@ begin
 end;
 
 
-constructor SaveToFileTask.Create(aProc: SaveToFileProcType; aFileName: UnicodeString);
+constructor SaveToFileTask.Create(aThis: TKMSavePointCollection; aFileName: UnicodeString);
 begin
   inherited Create('Save SavePoints');
 
-  Proc := aProc;
+  This := aThis;
   FileName := aFileName;
 end;
 
 
 procedure SaveToFileTask.exec;
 begin
-  Proc(FileName);
+  This.SaveToFile(FileName);
 end;
 
 
@@ -413,7 +409,7 @@ begin
   if Self = nil then Exit;
    // Increase save threads counter in main thread
   AtomicIncrement(fAsyncThreadsCnt);
-  aWorkerThread.Enqueue(SaveToFileTask.Create(Self.SaveToFile, aFileName));
+  aWorkerThread.Enqueue(SaveToFileTask.Create(Self, aFileName));
 end;
 
 
