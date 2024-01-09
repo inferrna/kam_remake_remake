@@ -2631,7 +2631,7 @@ end;
 // Hash function should be match to equals function, so
 // if A equals B, then Hash(A) = Hash(B)
 // For our task we need that From / To end could be swapped, since we don't care where is the starting point of the path
-function TKMDeliveryRouteBidKeyEqualityComparer.GetHashCode(constref Value: TKMDeliveryRouteBidKey): UInt32;
+function TKMDeliveryRouteBidKeyEqualityComparer.GetHashCode(const Value: TKMDeliveryRouteBidKey): Integer;
 begin
   Result := Value.GetHashCode;
 end;
