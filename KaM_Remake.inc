@@ -27,22 +27,13 @@
   //allow advanced records in Lazarus
   {$modeSwitch advancedRecords}
 
-  // {$modeSwitch functionreferences}
-
-  // {$modeSwitch anonymousfunctions}
-
   //Currently FPC does not define UNICODE define because in Delphi it means more than just a
   //default string type but a full RTL implementation : using Windows 'W' functions instead of 'A',
   //another class declarations(TStringStream for example).
   {$IFDEF FPC_UNICODESTRINGS}
     {$DEFINE UNICODE}
   {$ENDIF}
-
-  {$DEFINE NO_MUSIC}
-{$ELSE}
-  //Use secure authentication unit (KM_NetAuthSecure)
-  {$DEFINE USESECUREAUTH}
-{$ENDIF} 
+{$ENDIF}
 
 //Delphi compiler specific settings
 {$IFDEF WDC}
@@ -56,6 +47,12 @@
   {$ENDIF}
   
   {$DEFINE USE_VIRTUAL_TREEVIEW}
+{$ENDIF}
+
+{$IFNDEF Unix}
+{$DEFINE NO_MUSIC}
+//Use secure authentication unit (KM_NetAuthSecure)
+{$DEFINE USESECUREAUTH}
 {$ENDIF}
 
 //Enable perflog (should be disabled for release / release candidate versions)
