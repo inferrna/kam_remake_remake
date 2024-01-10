@@ -232,7 +232,7 @@ begin
 end;
 
 
-{$IFDEF FPC}
+{$IFDEF Unix}
 // Return Negative if A < B, Positive if B < A, 0 otherwise
 function TKMCampaignComparatorThreeWay(constref A, B: TKMCampaign): LongInt;
 begin
