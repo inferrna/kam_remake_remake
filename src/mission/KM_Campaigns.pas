@@ -245,7 +245,7 @@ end;
 
 procedure TKMCampaignsCollection.SortCampaigns;
 begin
-  {$IFDEF Unix}
+  {$IFNDEF Unix}
   SelectionSort<TKMCampaign>(fList, 0, Count - 1, @TKMCampaignComparator);
   {$ELSE}
   fList.Sort(@TKMCampaignComparatorThreeWay);
