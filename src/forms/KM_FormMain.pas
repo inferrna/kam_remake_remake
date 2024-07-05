@@ -6,8 +6,8 @@ uses
   ComCtrls, Controls, Buttons, Dialogs, ExtCtrls, Forms, Graphics, Menus, StdCtrls,
   KM_RenderControl, KM_CommonTypes,
   KM_WindowParams, KM_SettingsDev, KM_GameTypes,
-  KM_Defaults, KM_ResExporter,
-  {$IFDEF FPC} LResources, Spin, ExpandPanels, LCLIntf, LCLType {$ENDIF}
+  KM_Defaults, KM_ResExporter, ExpandPanels,
+  {$IFDEF FPC} LResources, Spin, LCLIntf, LCLType {$ENDIF}
   {$IFNDEF FPC} Vcl.Samples.Spin {$ENDIF}  // For some unnown reason Delphi auto add Vcl.Samples.Spin when use {$IFDEF WDC}
   {$IFDEF MSWindows} KM_VclMenuHint, ShellAPI, Windows, Messages {$ENDIF}
   ;
@@ -43,6 +43,8 @@ type
     Export_Sounds1: TMenuItem;
     mnExportHouseAnim: TMenuItem;
     mnExportUnitAnim: TMenuItem;
+    mnExportHDUnitThoughts: TMenuItem;
+    mnExportRPL: TMenuItem;
     RGPlayer: TRadioGroup;
     btnGameStop: TButton;
     OpenMissionMenu: TMenuItem;
@@ -107,33 +109,54 @@ type
     chkShowSoil: TCheckBox;
     chkShowFlatArea: TCheckBox;
     chkShowEyeRoutes: TCheckBox;
+    edDebugText: TEdit;
+    seDebugValue: TSpinEdit;
+    Label11: TLabel;
+    Label10: TLabel;
+    btFindObjByUID: TButton;
+    Label13: TLabel;
+    Label15: TLabel;
+    Label14: TLabel;
+    chkDebugScripting: TCheckBox;
+    cpLogs: TMyRollOut;
+    cpMisc: TMyRollOut;
+    cpGraphicTweaks: TMyRollOut;
+    cpUserInreface: TMyRollOut;
+    cpAI: TMyRollOut;
+    cpGameAdv: TMyRollOut;
+    cpScripting: TMyRollOut;
+    cpDebugRender: TMyRollOut;
+    chkJamMeter: TCheckBox;
+    chkShowTerrainOverlays: TCheckBox;
+    chkGipAsBytes: TCheckBox;
+    chkLoadUnsupSaves: TCheckBox;
+    chkHeight: TCheckBox;
+    sePauseBeforeTick: TSpinEdit;
+    seMakeSaveptBeforeTick: TSpinEdit;
+    seCustomSeed: TSpinEdit;
     {$IFDEF WDC}
-    mainGroup: TCategoryPanelGroup;
-    cpGameControls: TCategoryPanel;
-    cpDebugRender: TCategoryPanel;
-    cpAI: TCategoryPanel;
-    cpUserInreface: TCategoryPanel;
-    cpGraphicTweaks: TCategoryPanel;
-    cpLogs: TCategoryPanel;
-    cpGameAdv: TCategoryPanel;
-    cpPerfLogs: TCategoryPanel;
+    mainGroup: TGroupBox;
+    cpGameControls: TMyRollOut;
+    cpDebugRender: TMyRollOut;
+    cpAI: TMyRollOut;
+    cpUserInreface: TMyRollOut;
+    cpGraphicTweaks: TMyRollOut;
+    cpLogs: TMyRollOut;
+    cpGameAdv: TMyRollOut;
+    cpPerfLogs: TMyRollOut;
     chkLoadUnsupSaves: TCheckBox;
     chkJamMeter: TCheckBox;
     chkShowTerrainOverlays: TCheckBox;
     chkDebugScripting: TCheckBox;
     chkHeight: TCheckBox;
-    cpScripting: TCategoryPanel;
+    cpScripting: TMyRollOut;
     chkShowDeposits: TCheckBox;
     sePauseBeforeTick: TSpinEdit;
-    Label8: TLabel;
-    Label9: TLabel;
     seMakeSaveptBeforeTick: TSpinEdit;
-    Label12: TLabel;
-    seCustomSeed: TSpinEdit;
-    cpMisc: TCategoryPanel;
+    cpMisc: TMyRollOut;
     mnExportRPL: TMenuItem;
     chkGipAsBytes: TCheckBox;
-    cpDebugInput: TCategoryPanel;
+    cpDebugInput: TMyRollOut;
     Label14: TLabel;
     Label15: TLabel;
     Label13: TLabel;
@@ -143,6 +166,9 @@ type
     seDebugValue: TSpinEdit;
     edDebugText: TEdit;
     {$ENDIF}
+    Label8: TLabel;
+    Label9: TLabel;
+    Label12: TLabel;
     {$IFDEF FPC}
     mainGroup: TGroupBox;
     GroupBox3: TGroupBox;
@@ -322,6 +348,7 @@ type
     procedure ExportGameStatsClick(Sender: TObject);
     procedure ResourceValues1Click(Sender: TObject);
     procedure ReloadSettingsClick(Sender: TObject);
+    procedure ReloadLibxClick(Sender: TObject);
     procedure SaveSettingsClick(Sender: TObject);
     procedure SaveEditableMission1Click(Sender: TObject);
     procedure ValidateGameStatsClick(Sender: TObject);
@@ -358,6 +385,8 @@ type
     fDevSettings: TKMDevSettings;
     fStartVideoPlayed: Boolean;
     fUpdating: Boolean;
+    OldCreateOrder: Boolean;
+    TextHeight: Int32;
     fMissionDefOpenPath: UnicodeString;
     fOnControlsUpdated: TObjectIntegerEvent;
 
@@ -445,9 +474,12 @@ uses
   KM_ResTypes,
   KM_GameAppSettings;
 
-//{$IFDEF WDC}
+{$IFDEF WDC}
   {$R *.dfm}
-//{$ENDIF}
+{$ENDIF}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ENDIF}
 
 
 procedure ExportDone(aResourceName: String);
@@ -1190,7 +1222,7 @@ end;
 procedure TFormMain.ConstrolsDisableTabStops;
 
   {$IFDEF WDC}
-  procedure CategoryPanelDisableTabStops(aPanel: TCategoryPanel);
+  procedure CategoryPanelDisableTabStops(aPanel: TMyRollOut);
   var
     panelSurface: TCategoryPanelSurface;
   begin
@@ -1201,13 +1233,13 @@ procedure TFormMain.ConstrolsDisableTabStops;
     end;
   end;
 
-  procedure GroupDisableTabStops(aGroup: TCategoryPanelGroup);
+  procedure GroupDisableTabStops(aGroup: TMyRollOut);
   var
     I: Integer;
   begin
     for I := 0 to aGroup.ControlCount - 1 do
-      if (aGroup.Controls[I] is TCategoryPanel) then
-        CategoryPanelDisableTabStops(TCategoryPanel(aGroup.Controls[I]));
+      if (aGroup.Controls[I] is TMyRollOut) then
+        CategoryPanelDisableTabStops(TMyRollOut(aGroup.Controls[I]));
   end;
   {$ENDIF}
 
@@ -1331,7 +1363,7 @@ end;
 procedure TFormMain.ControlsReset;
 
   {$IFDEF WDC}
-  procedure ResetCategoryPanel(aPanel: TCategoryPanel);
+  procedure ResetCategoryPanel(aPanel: TMyRollOut);
   var
     panelSurface: TCategoryPanelSurface;
   begin
@@ -1342,13 +1374,13 @@ procedure TFormMain.ControlsReset;
     end;
   end;
 
-  procedure ResetGroup(aGroup: TCategoryPanelGroup);
+  procedure ResetGroup(aGroup: TMyRollOut);
   var
     I: Integer;
   begin
     for I := 0 to aGroup.ControlCount - 1 do
-      if (aGroup.Controls[I] is TCategoryPanel) then
-        ResetCategoryPanel(TCategoryPanel(aGroup.Controls[I]));
+      if (aGroup.Controls[I] is TMyRollOut) then
+        ResetCategoryPanel(TMyRollOut(aGroup.Controls[I]));
   end;
   {$ENDIF}
 
@@ -1494,6 +1526,12 @@ begin
   finally
     fUpdating := False;
   end;
+end;
+
+
+procedure TFormMain.ReloadLibxClick(Sender: TObject);
+begin
+  gRes.LoadLocaleAndFonts(gGameSettings.Locale, gGameSettings.GFX.LoadFullFonts);
 end;
 
 
