@@ -2930,7 +2930,9 @@ begin
 
   {$IFDEF USE_HASH}
 
+  {$IFDEF WDC}
   CleanCache; // Don't save expired cache records
+  {$ENDIF}
   SaveStream.PlaceMarker('DeliveryRouteEvaluator');
   SaveStream.Write(fUpdatesCnt);
   SaveStream.Write(fBidsRoutesCache.Count);

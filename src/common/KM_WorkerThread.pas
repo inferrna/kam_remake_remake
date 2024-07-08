@@ -174,8 +174,12 @@ begin
 
   while loopRunning do
   begin
-    fCritSection.Enter;
     try
+      if not fCritSection.tryEnter then
+      begin
+        Sleep(20);
+        Continue;
+      end;
       threadName := GetBaseThreadName; // get name under TMonitor, cause we access fTaskQueue
       if fTaskQueue.Count > 0 then
       begin
@@ -192,7 +196,7 @@ begin
         begin
           //Notify main thread that worker is idle if it's blocked in WaitForAllWorkToComplete
           fWorkCompleted := True;
-          fCritSection.Free;
+          fCritSection.Release;
 
           // TMonitor.Wait(fTaskQueue, 10000);
           if fTaskQueue.Count > 0 then
@@ -239,9 +243,9 @@ begin
     try
       fWorkCompleted := False;
       fTaskQueue.Enqueue(aTask);
-      fCritSection.Free;
+      fCritSection.Release;
     finally
-      fCritSection.Leave;
+      fCritSection.Free;
     end;
   end;
 end;
