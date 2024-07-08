@@ -2935,6 +2935,7 @@ begin
   {$ENDIF}
   SaveStream.PlaceMarker('DeliveryRouteEvaluator');
   SaveStream.Write(fUpdatesCnt);
+  //TODO: Access violation here. Should completely disable all *cache* code or completely enable it
   SaveStream.Write(fBidsRoutesCache.Count);
 
   if fBidsRoutesCache.Count > 0 then
