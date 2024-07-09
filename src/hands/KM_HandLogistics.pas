@@ -117,16 +117,14 @@ type
     FromP: TKMPoint; //House or Unit UID From where delivery path goes
     ToP: TKMPoint;   //same for To where delivery path goes
     Pass: TKMTerrainPassability;   //same for To where delivery path goes
-    function GetHashCode: Integer;
+    function GetHashCode: UInt32;
   end;
 
-  {$IFDEF WDC}
   //Custom key comparator. Probably TDictionary can handle it himself, but lets try our custom comparator
   TKMDeliveryRouteBidKeyEqualityComparer = class(TEqualityComparer<TKMDeliveryRouteBidKey>)
-    function Equals(const Left, Right: TKMDeliveryRouteBidKey): Boolean; override;
-    function GetHashCode(const Value: TKMDeliveryRouteBidKey): Integer; override;
+    function Equals(constref Left, Right: TKMDeliveryRouteBidKey): Boolean; override;
+    function GetHashCode(constref Value: TKMDeliveryRouteBidKey): UInt32; override;
   end;
-  {$ENDIF}
 
   {$IFNDEF Unix}
   //Comparer just to make some order by keys
@@ -2598,15 +2596,12 @@ end;
 {$IFDEF USE_HASH}
 { TKMDeliveryBidKeyComparer }
 
-{$IFDEF WDC}
-function TKMDeliveryRouteBidKeyEqualityComparer.Equals(const Left, Right: TKMDeliveryRouteBidKey): Boolean;
+function TKMDeliveryRouteBidKeyEqualityComparer.Equals(constref Left, Right: TKMDeliveryRouteBidKey): Boolean;
 begin
   // path keys are equal if they have same ends
   Result := ((Left.FromP = Right.FromP) and (Left.ToP = Right.ToP))
          or ((Left.FromP = Right.ToP)   and (Left.ToP = Right.FromP));
 end;
-{$ENDIF}
-
 
 //example taken from https://stackoverflow.com/questions/18068977/use-objects-as-keys-in-tobjectdictionary
 {$IFOPT Q+}
@@ -2627,15 +2622,14 @@ end;
 {$ENDIF}
 
 
-{$IFDEF WDC}
 // Hash function should be match to equals function, so
 // if A equals B, then Hash(A) = Hash(B)
 // For our task we need that From / To end could be swapped, since we don't care where is the starting point of the path
-function TKMDeliveryRouteBidKeyEqualityComparer.GetHashCode(const Value: TKMDeliveryRouteBidKey): Integer;
+function TKMDeliveryRouteBidKeyEqualityComparer.GetHashCode(constref Value: TKMDeliveryRouteBidKey): UInt32;
 begin
-  Result := Value.GetHashCode;
+  Result := (&Value).GetHashCode;
 end;
-{$ENDIF}
+
 
 
 function TKMDeliveryRouteBidKeyComparator(constref Left, Right: TKMDeliveryRouteBidKey): Integer;
@@ -2706,6 +2700,8 @@ end;
 function TKMDeliveryRouteCache.TryGetValue(const aKey: TKMDeliveryRouteBidKey; var aBid: TKMDeliveryRouteBid): Boolean;
 begin
   Result := False;
+  //Assert(aKey <> nil, 'aKey is nil');
+  //Assert(aBid <> nil, 'aBid is nil');
   if inherited TryGetValue(aKey, aBid) then
   begin
     if aBid.IsExpired(gGameParams.Tick) then //Don't return expired records
@@ -2718,22 +2714,29 @@ end;
 {$ENDIF}
 
 { TKMDeliveryBidKey }
-function TKMDeliveryRouteBidKey.GetHashCode: Integer;
+function TKMDeliveryRouteBidKey.GetHashCode: Uint32;
 var
-  total: Int64;
+  total: Uint64;
 begin
   //HashCode should be the same if we swap From and To
-  Int64Rec(total).Words[0] := (FromP.X + ToP.X);    // values range is 0..MAX_MAP_SIZE*2 (0..512)
-  Int64Rec(total).Words[1] := Abs(FromP.X - ToP.X); // (0..256)
-  Int64Rec(total).Words[2] := FromP.Y + ToP.Y;      // (0..512)
-  Int64Rec(total).Words[3] := (Byte(Pass) shl 8)          // (0..13 actually)
-                              or Abs(FromP.Y - ToP.Y); // (0..256)
-  {$IFNDEF Unix}
-  //GetHashValue(Integer/Cardinal) is even faster, but we can't fit our 34 bits there
-  Result := THashBobJenkins.GetHashValue(total, SizeOf(Int64), 0);
-  {$ELSE}
-  Result := BobJenkinsHash(total, SizeOf(Int64), 0);
-  {$ENDIF}
+
+  if FromP.X > ToP.X then
+  begin
+      Int64Rec(total).Bytes[0] := FromP.X;
+      Int64Rec(total).Bytes[1] := FromP.Y;
+      Int64Rec(total).Bytes[2] := ToP.X;
+      Int64Rec(total).Bytes[3] := ToP.Y;
+  end
+  else
+  begin
+      Int64Rec(total).Bytes[0] := ToP.X;
+      Int64Rec(total).Bytes[1] := ToP.Y;
+      Int64Rec(total).Bytes[2] := FromP.X;
+      Int64Rec(total).Bytes[3] := FromP.Y;
+  end;
+
+  Result := Uint32(BobJenkinsHash(Int64Rec(total).Lo, SizeOf(Int32), 0));
+
 end;
 
 
@@ -2763,13 +2766,11 @@ begin
 
   fUpdatesCnt := 0;
 
-  {$IFDEF WDC}
   if CACHE_DELIVERY_BIDS then
   begin
     fBidsRoutesCache := TKMDeliveryRouteCache.Create(TKMDeliveryRouteBidKeyEqualityComparer.Create);
     fRemoveKeysList := TList<TKMDeliveryRouteBidKey>.Create;
   end;
-  {$ENDIF}
 
   if DELIVERY_BID_CALC_USE_PATHFINDING then
     fNodeList := TKMPointList.Create;
@@ -2781,13 +2782,11 @@ destructor TKMDeliveryRouteEvaluator.Destroy;
 begin
   {$IFDEF USE_HASH}
 
-  {$IFDEF WDC}
   if CACHE_DELIVERY_BIDS then
   begin
     fBidsRoutesCache.Free;
     fRemoveKeysList.Free;
   end;
-  {$ENDIF}
 
   if DELIVERY_BID_CALC_USE_PATHFINDING then
     fNodeList.Free;
@@ -2838,8 +2837,6 @@ var
   bid: TKMDeliveryRouteBid;
 begin
   {$IFDEF USE_HASH}
-
-  {$IFDEF WDC}
   if CACHE_DELIVERY_BIDS then
   begin
     bidKey.FromP := aFromPos;
@@ -2855,19 +2852,13 @@ begin
   end;
   {$ENDIF}
 
-  {$ENDIF}
-
   // Calc value if it was not found in the cache
   Result := DoTryEvaluate(aFromPos, aToPos, aPass, aRouteCost);
 
   {$IFDEF USE_HASH}
-
-  {$IFDEF WDC}
   if CACHE_DELIVERY_BIDS then
     //Add calculated cost to the cache, even if there was no route. TTL for cache records is quite low, couple seconds
     fBidsRoutesCache.Add(bidKey, aRouteCost, aRouteStep);
-  {$ENDIF}
-
   {$ENDIF}
 end;
 
@@ -2904,10 +2895,8 @@ begin
   {$IFDEF USE_HASH}
   Inc(fUpdatesCnt);
 
-  {$IFDEF WDC}
   if CACHE_DELIVERY_BIDS and ((fUpdatesCnt mod CACHE_CLEAN_FREQ) = 0) then
     CleanCache;
-  {$ENDIF}
 
   {$ENDIF}
 end;
@@ -2930,12 +2919,10 @@ begin
 
   {$IFDEF USE_HASH}
 
-  {$IFDEF WDC}
+
   CleanCache; // Don't save expired cache records
-  {$ENDIF}
   SaveStream.PlaceMarker('DeliveryRouteEvaluator');
   SaveStream.Write(fUpdatesCnt);
-  //TODO: Access violation here. Should completely disable all *cache* code or completely enable it
   SaveStream.Write(fBidsRoutesCache.Count);
 
   if fBidsRoutesCache.Count > 0 then
@@ -2982,9 +2969,7 @@ var
   bid: TKMDeliveryRouteBid;
 {$ENDIF}
 begin
-  {$IFDEF WDC}
   if not CACHE_DELIVERY_BIDS then Exit;
-  {$ENDIF}
 
   {$IFDEF USE_HASH}
 

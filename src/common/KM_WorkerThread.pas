@@ -119,14 +119,15 @@ begin
 end;
 
 destructor TKMWorkerThread.Destroy;
+var entered: Boolean;
 begin
   Terminate;
   //Wake the thread if it's waiting
-   fCritSection.Enter;
+  entered := fCritSection.tryEnter;
   try
-    fCritSection.Free;
-  finally
     fCritSection.Leave;
+  finally
+    if entered then fCritSection.Free;
   end;
 
   inherited Destroy;
@@ -196,7 +197,7 @@ begin
         begin
           //Notify main thread that worker is idle if it's blocked in WaitForAllWorkToComplete
           fWorkCompleted := True;
-          fCritSection.Release;
+          fCritSection.Free;
 
           // TMonitor.Wait(fTaskQueue, 10000);
           if fTaskQueue.Count > 0 then
@@ -204,7 +205,7 @@ begin
         end;
       end;
     finally
-      fCritSection.Leave;
+      //fCritSection.Free;
     end;
 
     if job <> nil then
@@ -239,13 +240,12 @@ begin
     if Finished then
       raise Exception.Create('Worker thread not running in TKMWorkerThread.Enqueue');
 
-    fCritSection.Enter;
+
     try
       fWorkCompleted := False;
       fTaskQueue.Enqueue(aTask);
-      fCritSection.Release;
     finally
-      fCritSection.Free;
+      //DoneCriticalSection(fCritSection);
     end;
   end;
 end;
@@ -261,7 +261,7 @@ begin
     if not fWorkCompleted and not Finished then
     begin
       //Wait infinite until worker thread finish his job
-      //while not fCritSection. (fTaskQueue, 1000) do ;
+      while not fCritSection.tryEnter do Sleep(20);
     end;
   finally
     fCritSection.Leave;

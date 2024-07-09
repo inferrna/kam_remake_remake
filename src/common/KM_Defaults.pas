@@ -111,9 +111,8 @@ var
   CACHE_PATHFINDING                       :Boolean = True; //Cache routes incase they are needed soon (Vortamic PF runs x4 faster even with lame approach)
   CACHE_PATHFINDING_AVOID_LOCKED          :Boolean = True; //Cache unsuccesfull tries to find route with avoid locked (as non walkable)
   DELIVERY_BID_CALC_USE_PATHFINDING       :Boolean = True; //Do we use simple distance on map or pathfinding for calc delivery bids cost?
-  {$IFDEF WDC} //Work only in Delphi
   CACHE_DELIVERY_BIDS: Boolean = True; //Cache delivery bids cost. Must be turned ON if we want to use pathfinding for bid calc, huge impact on performance in that case
-  {$ENDIF}
+
 
   WARFARE_ORDER_SEQUENTIAL    :Boolean = True; //Pick weapon orders like KaM did
   WARFARE_ORDER_PROPORTIONAL  :Boolean = False; //New proportional way (looks like a bad idea)
