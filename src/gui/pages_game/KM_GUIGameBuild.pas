@@ -2,9 +2,9 @@
 {$I KaM_Remake.inc}
 interface
 uses
-  StrUtils, SysUtils,
+  StrUtils, SysUtils, TypInfo,
   KM_Controls, KM_ControlsBase,
-  KM_Defaults,
+  KM_Defaults, KM_Log,
   KM_InterfaceGame, KM_ResHouses;
 
 
@@ -125,6 +125,17 @@ procedure TKMGUIGameBuild.Build_ButtonClick(Sender: TObject);
     Label_Build.Caption := aCaption;
     Image_Build_Selected.TexID := aTexId;
   end;
+  function getSenderTag: Integer;
+  begin
+    if (Sender.ClassType = TKMButton) then
+      Result := (Sender as TKMButton).Tag
+    else if (Sender.ClassType = TKMButtonFlat) then
+      Result := (Sender as TKMButtonFlat).Tag
+    else begin
+      Assert(False, 'Unknown class');
+      Result := 0;
+    end;
+  end;
 
 var
   I: Integer;
@@ -159,11 +170,17 @@ begin
   else
   if Button_BuildWine.Down then
     SetCost(cmWine, 0, 336, 1, 0, gResTexts[TX_BUILD_WINE])
-  else
+  else if (Sender.ClassType = TKMButton) or (Sender.ClassType = TKMButtonFlat) then
   begin
-    house := TKMHouseType(TKMButton(Sender).Tag);
+    gLog.AddTime('TKMButton with Tag: '+getSenderTag().toString);
+    house := TKMHouseType(getSenderTag());
+    gLog.AddTime('Choosen building '+GetEnumName(TypeInfo(TKMHouseType), Ord(house)));
     houseSpec := gRes.Houses[house];
     SetCost(cmHouses, Byte(house), houseSpec.GUIIcon, houseSpec.WoodCost, houseSpec.StoneCost, houseSpec.HouseName);
+  end
+  else begin
+    Assert(False, 'Click is unknown. Seel Logs for more details.');
+    gLog.AddTime('Click is unknown. Sender of type: '+Sender.ClassName);
   end;
 end;
 

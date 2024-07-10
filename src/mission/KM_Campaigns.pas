@@ -408,7 +408,7 @@ end;
 
 procedure TKMCampaignsCollection.Unlock;
 begin
-  fCriticalSection.Leave;
+  fCriticalSection.Release;
 end;
 
 
@@ -423,7 +423,7 @@ begin
 
     //Keep the maps sorted
     //We signal from Locked section, so everything caused by event can safely access our Maps
-    SortCampaigns;
+    //SortCampaigns;
 
     fScanning := True;
   finally
@@ -547,6 +547,7 @@ begin
   fViewed := False;
   fUnlockedMap := 0;
   fScriptDataStream := TKMemoryStreamBinary.Create;
+  fShortName := '';
 end;
 
 
@@ -937,6 +938,7 @@ begin
         FindClose(searchRec);
       end;
     finally
+      //TODO SortCampaigns here
       if not Terminated and Assigned(fOnComplete) then
         fOnComplete(Self);
     end;

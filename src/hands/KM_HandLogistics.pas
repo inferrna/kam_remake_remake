@@ -2716,26 +2716,26 @@ end;
 { TKMDeliveryBidKey }
 function TKMDeliveryRouteBidKey.GetHashCode: Uint32;
 var
-  total: Uint64;
+  total: Uint32;
 begin
   //HashCode should be the same if we swap From and To
 
   if FromP.X > ToP.X then
   begin
-      Int64Rec(total).Bytes[0] := FromP.X;
-      Int64Rec(total).Bytes[1] := FromP.Y;
-      Int64Rec(total).Bytes[2] := ToP.X;
-      Int64Rec(total).Bytes[3] := ToP.Y;
+      LongRec(total).Bytes[0] := FromP.X;
+      LongRec(total).Bytes[1] := FromP.Y;
+      LongRec(total).Bytes[2] := ToP.X;
+      LongRec(total).Bytes[3] := ToP.Y;
   end
   else
   begin
-      Int64Rec(total).Bytes[0] := ToP.X;
-      Int64Rec(total).Bytes[1] := ToP.Y;
-      Int64Rec(total).Bytes[2] := FromP.X;
-      Int64Rec(total).Bytes[3] := FromP.Y;
+      LongRec(total).Bytes[0] := ToP.X;
+      LongRec(total).Bytes[1] := ToP.Y;
+      LongRec(total).Bytes[2] := FromP.X;
+      LongRec(total).Bytes[3] := FromP.Y;
   end;
 
-  Result := Uint32(BobJenkinsHash(Int64Rec(total).Lo, SizeOf(Int32), 0));
+  Result := Uint32(BobJenkinsHash(total, SizeOf(Int32), 0));
 
 end;
 
