@@ -172,15 +172,15 @@ begin
     SetCost(cmWine, 0, 336, 1, 0, gResTexts[TX_BUILD_WINE])
   else if (Sender.ClassType = TKMButton) or (Sender.ClassType = TKMButtonFlat) then
   begin
-    gLog.AddTime('TKMButton with Tag: '+getSenderTag().toString);
+    //gLog.AddTime('TKMButton with Tag: '+getSenderTag().toString);
     house := TKMHouseType(getSenderTag());
-    gLog.AddTime('Choosen building '+GetEnumName(TypeInfo(TKMHouseType), Ord(house)));
+    //gLog.AddTime('Choosen building '+GetEnumName(TypeInfo(TKMHouseType), Ord(house)));
     houseSpec := gRes.Houses[house];
     SetCost(cmHouses, Byte(house), houseSpec.GUIIcon, houseSpec.WoodCost, houseSpec.StoneCost, houseSpec.HouseName);
   end
   else begin
-    Assert(False, 'Click is unknown. Seel Logs for more details.');
     gLog.AddTime('Click is unknown. Sender of type: '+Sender.ClassName);
+    Assert(False, 'Click is unknown. See Logs for more details.');
   end;
 end;
 
