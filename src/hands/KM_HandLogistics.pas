@@ -2913,9 +2913,7 @@ var
   bid: TKMDeliveryRouteBid;
 {$ENDIF}
 begin
-  {$IFDEF WDC}
   if not CACHE_DELIVERY_BIDS then Exit;
-  {$ENDIF}
 
   {$IFDEF USE_HASH}
 
@@ -2935,7 +2933,8 @@ begin
       {$IFNDEF Unix}
       TArray.Sort<TKMDeliveryRouteBidKey>(cacheKeyArray, comparer);
       {$ELSE}
-      SortCustom(cacheKeyArray, Low(cacheKeyArray), High(cacheKeyArray), SizeOf(cacheKeyArray[0]), @TKMDeliveryRouteBidKeyComparator);
+      //TODO: make working again
+      //SortCustom(cacheKeyArray, Low(cacheKeyArray), High(cacheKeyArray), SizeOf(cacheKeyArray[0]), @TKMDeliveryRouteBidKeyComparator);
       {$ENDIF}
 
       for key in cacheKeyArray do
