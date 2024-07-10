@@ -131,7 +131,7 @@ uses
   KM_GameAppSettings;
 
 const
-  SCROLL_SPEED_MULTIPLIER = 2.5;
+  SCROLL_SPEED_MULTIPLIER = 1.0;
   BLOCK_SPAN = 18;
 
 
