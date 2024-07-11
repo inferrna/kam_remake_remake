@@ -615,7 +615,7 @@ function TKMMain.ReinitRender(aReturnToOptions: Boolean): Boolean;
     SKIP_RENDER := True; // Skip render, since gGameApp will show panels on FullScreen mode
     fFormLoading.Hide; //Will close the form on Full Screen mode
     fFormMain.Hide;
-    gMusic.Stop;
+    gMusic.Stop(0);
     fFormMain.ShowFolderPermissionError; // Show localized error message
     Stop(nil); // Stop the app
   end;

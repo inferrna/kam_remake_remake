@@ -315,7 +315,7 @@ end;
 
 procedure TKMMenuCampaign.PlayBriefingAudioTrack;
 begin
-  gMusic.StopPlayingOtherFile; //Stop playing the previous briefing even if this one doesn't exist
+  gMusic.Stop(1); //Stop playing the previous briefing even if this one doesn't exist
 
   // For some reason fMapIndex could get incorrect value
   if not InRange(fMapIndex, 0, MAX_CAMP_MAPS - 1) then Exit;
@@ -325,7 +325,7 @@ end;
 
 procedure TKMMenuCampaign.StartClick(Sender: TObject);
 begin
-  gMusic.StopPlayingOtherFile;
+  gMusic.Stop(1);
 
   if Assigned(OnNewCampaignMap) then
     OnNewCampaignMap(fCampaignId, fMapIndex, fDifficulty);
@@ -429,7 +429,7 @@ end;
 
 procedure TKMMenuCampaign.BackClick(Sender: TObject);
 begin
-  gMusic.StopPlayingOtherFile; //Cancel briefing if it was playing
+  gMusic.Stop(1); //Cancel briefing if it was playing
 
   fOnPageChange(gpCampSelect);
 end;

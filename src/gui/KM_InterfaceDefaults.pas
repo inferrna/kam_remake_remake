@@ -260,14 +260,14 @@ begin
   if Key = gResKeys[kfMusicVolumeUp] then
   begin
     gGameSettings.SFX.MusicVolume := gGameSettings.SFX.MusicVolume + 1 / OPT_SLIDER_MAX;
-    gMusic.Volume := gGameSettings.SFX.MusicVolume;
+    gMusic.SetVolume(gGameSettings.SFX.MusicVolume, 0);
     aHandled := True;
   end;
 
   if Key = gResKeys[kfMusicVolumeDown] then
   begin
     gGameSettings.SFX.MusicVolume := gGameSettings.SFX.MusicVolume - 1 / OPT_SLIDER_MAX;
-    gMusic.Volume := gGameSettings.SFX.MusicVolume;
+    gMusic.SetVolume(gGameSettings.SFX.MusicVolume, 0);
     aHandled := True;
   end;
 
@@ -322,7 +322,7 @@ begin
   if Key = gResKeys[kfMusicMute] then
   begin
     gMusic.ToggleMuted;
-    gGameSettings.SFX.MusicVolume := gMusic.Volume;
+    gGameSettings.SFX.MusicVolume := gMusic.getVolume(0);
     aHandled := True;
   end;
 
@@ -340,7 +340,7 @@ begin
     gSoundPlayer.Muted := not mutedAll;
     gMusic.Muted := not mutedAll;
     gGameSettings.SFX.SoundFXVolume := gSoundPlayer.Volume;
-    gGameSettings.SFX.MusicVolume := gMusic.Volume;
+    gGameSettings.SFX.MusicVolume := gMusic.getVolume(0);
     aHandled := True;
   end;
 end;

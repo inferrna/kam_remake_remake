@@ -672,7 +672,7 @@ begin
   CheckBox_ShuffleOn.Enabled  := not CheckBox_MusicOff.Checked;
 
   gSoundPlayer.UpdateSoundVolume(gGameSettings.SFX.SoundFXVolume);
-  gMusic.Volume := gGameSettings.SFX.MusicVolume;
+  gMusic.SetVolume(gGameSettings.SFX.MusicVolume, 0);
 
   gGameSettings.Video.Enabled         := CheckBox_VideoEnable.Checked;
   gGameSettings.Video.VideoStretch    := CheckBox_VideoStretch.Checked;

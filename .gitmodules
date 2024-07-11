@@ -13,3 +13,6 @@
 [submodule "src/ext/expandpanels"]
 	path = src/ext/expandpanels
 	url = git@github.com:roth-a/expandpanels.git
+[submodule "src/ext/sdl2"]
+	path = src/ext/sdl2
+	url = https://github.com/PascalGameDevelopment/SDL2-for-Pascal.git

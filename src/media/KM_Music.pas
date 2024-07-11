@@ -11,15 +11,17 @@ interface
 //            - ZLibPlay is GPL but BASS is not, and BASS can only be used for free in non-commercial products
 
 {$IFNDEF NO_MUSIC}
-  {$DEFINE USEBASS}
-  {$IFDEF MSWindows}
-    {.$DEFINE USELIBZPLAY}
-  {$ENDIF}
+//  {$DEFINE USEBASS}
+//  {$IFDEF MSWindows}
+//    {.$DEFINE USELIBZPLAY}
+//  {$ENDIF}
+  {$DEFINE USESDL_MIXER}
 {$ENDIF}
 
 uses
   Types
   {$IFDEF USEBASS}     , Bass {$ENDIF}
+  {$IFDEF USESDL_MIXER}, SDL2, SDL2_mixer {$ENDIF}
   {$IFDEF USELIBZPLAY} , libZPlay {$ENDIF}
   ;
 
@@ -42,22 +44,19 @@ type
     fEnabled: Boolean;
     fPrevVolume: Single; // Volume before mute
     fVolume: Single;
-    {$IFDEF USEBASS} fBassStream, fBassOtherStream: Cardinal; {$ENDIF}
-    {$IFDEF USELIBZPLAY} ZPlayer, ZPlayerOther: ZPlay; {$ENDIF} //I dislike that it's not TZPlay... Guess they don't know Delphi conventions.
+    {$IFDEF USEBASS} fBassStreams: array[0..1] of Cardinal; {$ENDIF}
+    {$IFDEF USESDL_MIXER}SDLStreams: array[0..1] of PMix_Music; {$ENDIF}
+    {$IFDEF USELIBZPLAY} ZPlayers: array[0..1] of ZPlay; {$ENDIF} //I dislike that it's not TZPlay... Guess they don't know Delphi conventions.
     fFadeState: TKMFadeState;
     fFadeStarted: Cardinal;
     fFadeTime: Integer;
     fToPlayAfterFade: UnicodeString;
     fFadedToPlayOther: Boolean;
     fOtherVolume: Single;
-    procedure PlayFile(const FileName: UnicodeString);
-    procedure PlayOtherFile(const FileName: UnicodeString);
+    procedure PlayFile(const FileName: UnicodeString; iStreamId: Integer);
     procedure ScanTracks(const aPath: UnicodeString);
     procedure ShuffleSongs; //should not be seen outside of this class
     procedure UnshuffleSongs;
-
-    procedure SetVolume(aValue: Single);
-    function GetVolume: Single;
     procedure SetMuted(const aMuted: Boolean);
     function GetMuted: Boolean;
     function GetPrevVolume: Single;
@@ -67,28 +66,27 @@ type
     constructor Create(aVolume: Single);
     destructor Destroy; override;
 
-    property Volume: Single read GetVolume write SetVolume;
     property Muted: Boolean read GetMuted write SetMuted;
-    procedure SetPlayerVolume(aValue: Single);
+    procedure SetPlayerVolume(aValue: Single; iStreamId: Integer);
 
     procedure PlayMenuTrack;
     procedure PlayNextTrack;
     procedure PlayPreviousTrack;
-    function IsEnded: Boolean;
-    function IsOtherEnded: Boolean;
+    function IsEnded(iStreamId: Integer): Boolean;
     procedure Pause;
     procedure Resume;
-    procedure Stop;
+    procedure Stop(iStreamId: Integer);
     procedure ToggleMuted;
     procedure ToggleEnabled(aEnableMusic: Boolean);
     procedure ToggleShuffle(aEnableShuffle: Boolean);
     procedure Fade; overload;
     procedure Fade(aFadeTime: Integer); overload;
+    procedure SetVolume(aValue: Single; iStreamId: Integer);
+    function  GetVolume(iStreamId: Integer): Single;
     procedure UnfadeStarting;
     procedure Unfade; overload;
     procedure Unfade(aFadeTime: Integer; aHandleCrackling: Boolean = False); overload;
     procedure PauseToPlayFile(const aFileName: UnicodeString; aVolume: Single);
-    procedure StopPlayingOtherFile;
     function GetTrackTitle: UnicodeString;
     procedure UpdateStateIdle; //Used for fading
   end;
@@ -126,8 +124,27 @@ begin
 
 
   {$IFDEF USELIBZPLAY}
-  ZPlayer := ZPlay.Create; //Note: They should have used TZPlay not ZPlay for a class
-  ZPlayerOther := ZPlay.Create;
+  ZPlayers[0] := ZPlay.Create; //Note: They should have used TZPlay not ZPlay for a class
+  ZPlayers[1] := ZPlay.Create;
+  {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  if (SDL_Init(SDL_INIT_AUDIO) < 0) then
+  begin
+    gLog.AddTime('Failed to initialize SDL: '+SDL_GetError());
+    fIsInitialized := False;
+  end;
+  if Mix_Init(MIX_INIT_MP3) <> MIX_INIT_MP3 then
+  begin
+    fIsInitialized := False;
+  end;
+  if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 640) < 0) then
+  begin
+    gLog.AddTime('Failed to open audio device: ' + Mix_GetError());
+    fIsInitialized := False;
+    Mix_Quit();
+    SDL_Quit();
+  end;
+  //SDLStream, SDLStreamOther: PMix_Music;
   {$ENDIF}
 
   {$IFDEF USEBASS}
@@ -140,7 +157,7 @@ begin
   end;
   {$ENDIF}
 
-  SetVolume(aVolume);
+  SetVolume(aVolume, 0);
 
   // Initialise TrackOrder
   for I := 0 to fCount - 1 do
@@ -153,15 +170,18 @@ end;
 destructor TKMMusicLib.Destroy;
 begin
   {$IFDEF USELIBZPLAY}
-  ZPlayer.Free;
-  ZPlayerOther.Free;
+  ZPlayers[0].Free;
+  ZPlayers[1].Free;
   {$ENDIF}
-
+  {$IFDEF USESDL_MIXER}
+  Mix_FreeMusic(SDLStreams[0]);
+  Mix_FreeMusic(SDLStreams[1]);
+  {$ENDIF}
   {$IFDEF USEBASS}
   BASS_Stop; //Stop all Bass output
   //Free the streams we may have used (will just return False if the stream is invalid)
-  BASS_StreamFree(fBassStream);
-  BASS_StreamFree(fBassOtherStream);
+  BASS_StreamFree(fBassStreams[0]);
+  BASS_StreamFree(fBassStreams[1]);
   BASS_Free; //Frees this usage of BASS, allowing it to be recreated successfully
   {$ENDIF}
 
@@ -169,7 +189,7 @@ begin
 end;
 
 
-procedure TKMMusicLib.PlayFile(const FileName: UnicodeString);
+procedure TKMMusicLib.PlayFile(const FileName: UnicodeString; iStreamId: Integer);
 {$IFDEF USEBASS}
 var
   errorCode: Integer;
@@ -179,73 +199,45 @@ begin
   if fFadeState <> fsNone then Exit; //Don't start a new track while fading or faded
 
   //Cancel previous sound
-  {$IFDEF USELIBZPLAY} ZPlayer.StopPlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelStop(fBassStream); {$ENDIF}
+  Stop(iStreamId);
 
   if not FileExists(FileName) then Exit; //Make it silent
 
   {$IFDEF USELIBZPLAY}
-  if not ZPlayer.OpenFile(AnsiString(FileName), sfAutodetect) then //Detect file type automatically
+  if not ZPlayers[iStreamId].OpenFile(AnsiString(FileName), sfAutodetect) then //Detect file type automatically
     Exit; //File failed to load
-  if not ZPlayer.StartPlayback then
+  if not ZPlayers[iStreamId].StartPlayback then
     Exit; //Playback failed to start
   {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  SDLStreams[iStreamId] := Mix_LoadMUS(PChar(AnsiString(filename)));
+  if SDLStreams[iStreamId] = nil then
+  begin
+     gLog.AddTime('Failed to load music '+filename+'! SDL_mixer Error: '+Mix_GetError());
+     Exit;
+  end;
+  if Mix_PlayMusic(SDLStreams[iStreamId], 1) = -1 then
+  begin
+     gLog.AddTime('Failed to play music '+filename+'! SDL_mixer Error: '+Mix_GetError());
+     Exit;
+  end;
+  {$ENDIF}
   {$IFDEF USEBASS}
-  BASS_StreamFree(fBassStream); //Free the existing stream (will just return False if the stream is invalid)
-  fBassStream := BASS_StreamCreateFile(FALSE, PChar(FileName), 0, 0, BASS_STREAM_AUTOFREE {$IFDEF UNICODE} or BASS_UNICODE{$ENDIF});
+  BASS_StreamFree(fBassStreams[iStreamId]); //Free the existing stream (will just return False if the stream is invalid)
+  fBassStreams[iStreamId] := BASS_StreamCreateFile(FALSE, PChar(FileName), 0, 0, BASS_STREAM_AUTOFREE {$IFDEF UNICODE} or BASS_UNICODE{$ENDIF});
 
-  BASS_ChannelPlay(fBassStream, True); //Start playback from the beggining
+  BASS_ChannelPlay(fBassStreams[iStreamId], True); //Start playback from the beggining
 
   errorCode := BASS_ErrorGetCode;
   if errorCode <> BASS_OK then Exit; //Error
   {$ENDIF}
 
-  SetVolume(fVolume); //Need to reset music volume after starting playback
-end;
-
-
-procedure TKMMusicLib.PlayOtherFile(const FileName: UnicodeString);
-{$IFDEF USEBASS}
-var
-  errorCode: Integer;
-{$ENDIF}
-begin
-  if not fIsInitialized then Exit;
-
-  //Cancel previous sound
-  {$IFDEF USELIBZPLAY} ZPlayerOther.StopPlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelStop(fBassOtherStream); {$ENDIF}
-
-  if not FileExists(FileName) then Exit; //Make it silent
-
-  {$IFDEF USELIBZPLAY}
-  if not ZPlayerOther.OpenFile(AnsiString(FileName), sfAutodetect) then //Detect file type automatically
-    Exit; //File failed to load
-  if not ZPlayerOther.StartPlayback then
-    Exit; //Playback failed to start
-  {$ENDIF}
-  {$IFDEF USEBASS}
-  BASS_StreamFree(fBassOtherStream); //Free the existing stream (will just return False if the stream is invalid)
-  fBassOtherStream := BASS_StreamCreateFile(FALSE, PChar(FileName), 0, 0, BASS_STREAM_AUTOFREE {$IFDEF UNICODE} or BASS_UNICODE{$ENDIF});
-
-  BASS_ChannelPlay(fBassOtherStream, True); //Start playback from the beggining
-
-  errorCode := BASS_ErrorGetCode;
-  if errorCode <> BASS_OK then Exit; //Error
-  {$ENDIF}
-
-  //Now set the volume to the desired level
-  {$IFDEF USELIBZPLAY}
-  ZPlayerOther.SetPlayerVolume(Round(fOtherVolume * 100), Round(fOtherVolume * 100)); //0=silent, 100=max
-  {$ENDIF}
-  {$IFDEF USEBASS}
-  BASS_ChannelSetAttribute(fBassOtherStream, BASS_ATTRIB_VOL, fOtherVolume); //0=silent, 1=max
-  {$ENDIF}
+  SetVolume(fVolume, iStreamId); //Need to reset music volume after starting playback
 end;
 
 
 {Update music gain (global volume for all sounds/music)}
-procedure TKMMusicLib.SetVolume(aValue: Single);
+procedure TKMMusicLib.SetVolume(aValue: Single; iStreamId: Integer);
 begin
   if not fIsInitialized then Exit; //Keep silent
   if not fEnabled then Exit;
@@ -255,34 +247,40 @@ begin
   if fVolume > 0 then
     fPrevVolume := fVolume;
 
-  SetPlayerVolume(fVolume);
+  SetPlayerVolume(fVolume, iStreamId);
 end;
 
 
 // Set player volume (game music volume stays unchanged)
-procedure TKMMusicLib.SetPlayerVolume(aValue: Single);
+procedure TKMMusicLib.SetPlayerVolume(aValue: Single; iStreamId: Integer);
 begin
   {$IFDEF USELIBZPLAY}
-  ZPlayer.SetPlayerVolume(Round(aValue * 100), Round(aValue * 100)); //0=silent, 100=max
+  ZPlayers[iStreamId].SetPlayerVolume(Round(aValue * 100), Round(aValue * 100)); //0=silent, 100=max
+  {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Mix_Volume(iStreamId, Round(aValue * MIX_MAX_VOLUME));
   {$ENDIF}
   {$IFDEF USEBASS}
-  BASS_ChannelSetAttribute(fBassStream, BASS_ATTRIB_VOL, aValue); //0=silent, 1=max
+  BASS_ChannelSetAttribute(fBassStreams[iStreamId], BASS_ATTRIB_VOL, aValue); //0=silent, 1=max
   {$ENDIF}
 end;
 
 
-function TKMMusicLib.GetVolume: Single;
+function TKMMusicLib.GetVolume(iStreamId: Integer): Single;
 {$IFDEF USELIBZPLAY}
 var
   LeftVolume, RightVolume: Integer;
 {$ENDIF}
 begin
   {$IFDEF USELIBZPLAY}
-  ZPlayer.GetPlayerVolume(LeftVolume, RightVolume); //0=silent, 100=max
-  Result := LeftVolume / 100;
+  ZPlayers[iStreamId].GetPlayerVolume(LeftVolume, RightVolume); //0=silent, 100=max
+  Result := (LeftVolume + RightVolume) / 200;
+  {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Result := Single(Mix_Volume(iStreamId, -1)) / MIX_MAX_VOLUME;
   {$ENDIF}
   {$IFDEF USEBASS}
-  BASS_ChannelGetAttribute(fBassStream, BASS_ATTRIB_VOL, Result);
+  BASS_ChannelGetAttribute(fBassStreams[iStreamId], BASS_ATTRIB_VOL, Result);
   {$ENDIF}
 end;
 
@@ -307,6 +305,9 @@ begin
       or (GetFileExt(searchRec.Name) = 'OGG')
       {$IFDEF USEBASS} //Formats supported by BASS but not LibZPlay
       or (GetFileExt(SearchRec.Name) = 'AIFF')
+      {$ENDIF}
+      {$IFDEF USESDL_MIXER}
+      //or (GetFileExt(SearchRec.Name) = 'MIDI' //TODO: have to test if it works
       {$ENDIF}
       {$IFDEF USELIBZPLAY} //Formats supported by LibZPlay but not BASS
       or (GetFileExt(searchRec.Name) = 'FLAC')
@@ -351,7 +352,7 @@ begin
   // There was audio crackling after loading screen, here we fix it by setting a delay and fading the volume.
   prevVolume := fVolume;
   fVolume := 0;
-  PlayFile(fTracks[0]);
+  PlayFile(fTracks[0], 0);
   fVolume := prevVolume;
   UnfadeStarting;
 end;
@@ -365,7 +366,7 @@ begin
 
   //Set next index, looped or random
   fIndex := (fIndex + 1) mod fCount;
-  PlayFile(fTracks[fTrackOrder[fIndex]]);
+  PlayFile(fTracks[fTrackOrder[fIndex]], 0);
 end;
 
 
@@ -376,53 +377,42 @@ begin
   if fFadeState <> fsNone then Exit;
 
   fIndex := (fIndex + fCount - 1) mod fCount;
-  PlayFile(fTracks[fTrackOrder[fIndex]]);
+  PlayFile(fTracks[fTrackOrder[fIndex]], 0);
 end;
 
 
 //Check if Music is not playing, to know when new mp3 should be feeded
-function TKMMusicLib.IsEnded: Boolean;
+function TKMMusicLib.IsEnded(iStreamId: Integer): Boolean;
 {$IFDEF USELIBZPLAY}
 var
   status: TStreamStatus;
 {$ENDIF}
 begin
-  {$IFDEF USELIBZPLAY} ZPlayer.GetStatus(status); {$ENDIF}
+  {$IFDEF USELIBZPLAY} ZPlayers[iStreamId].GetStatus(status); {$ENDIF}
   Result := fIsInitialized
             {$IFDEF USELIBZPLAY}
             and (not status.fPlay and not status.fPause) //Not playing and not paused due to fade
             {$ENDIF}
+            {$IFDEF USESDL_MIXER}
+            and (Mix_Playing(iStreamId) <> 0);
+            {$ENDIF}
             {$IFDEF USEBASS}
-            and (BASS_ChannelIsActive(fBassStream) = BASS_ACTIVE_STOPPED)
+            and (BASS_ChannelIsActive(fBassStreams[iStreamId]) = BASS_ACTIVE_STOPPED)
             {$ENDIF}
             ;
 end;
 
 
-//Check if other is not playing, to know when to return to the music
-function TKMMusicLib.IsOtherEnded: Boolean;
-{$IFDEF USELIBZPLAY}
-var
-  status: TStreamStatus;
-{$ENDIF}
-begin
-  {$IFDEF USELIBZPLAY} ZPlayerOther.GetStatus(status); {$ENDIF}
-  Result := fIsInitialized
-            {$IFDEF USELIBZPLAY}
-            and (not status.fPlay) //Not playing and not paused due to fade
-            {$ENDIF}
-            {$IFDEF USEBASS}
-            and (BASS_ChannelIsActive(fBassOtherStream) = BASS_ACTIVE_STOPPED)
-            {$ENDIF}
-            ;
-end;
 
-
-procedure TKMMusicLib.Stop;
+procedure TKMMusicLib.Stop(iStreamId: Integer);
 begin
   if (Self = nil) or not fIsInitialized then Exit;
-  {$IFDEF USELIBZPLAY} ZPlayer.StopPlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelStop(fBassStream); {$ENDIF}
+  {$IFDEF USELIBZPLAY} ZPlayers[iStreamId].StopPlayback; {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  if Mix_HaltChannel(iStreamId) = -1 then
+     gLog.AddTime('Failed to halt channel '+iStreamId.toString+'! SDL_mixer Error: '+Mix_GetError());
+  {$ENDIF}
+  {$IFDEF USEBASS} BASS_ChannelStop(fBassStreams[iStreamId]); {$ENDIF}
   fIndex := -1;
 end;
 
@@ -433,7 +423,7 @@ begin
   if aEnableMusic then
     PlayMenuTrack //Start with the default track
   else
-    Stop;
+    Stop(0);
 end;
 
 
@@ -456,11 +446,11 @@ begin
   if aMuted then
   begin
     fPrevVolume := fVolume;
-    Volume := 0;
+    SetVolume(0, 0);
   end
   else
   begin
-    Volume := PrevVolume;
+    SetVolume(PrevVolume, 0);
     fPrevVolume := 0;
   end;
 end;
@@ -532,13 +522,16 @@ begin
   fFadeState := fsFadeOut; //Fade it out
   fFadeStarted := TimeGet;
   {$IFDEF USELIBZPLAY}
-  ZPlayer.GetPosition(startTime);
+  ZPlayers[0].GetPosition(startTime);
   endTime.ms := startTime.ms + aFadeTime;
-  ZPlayer.GetPlayerVolume(left, right); //Start fade from the current volume
-  ZPlayer.SlideVolume(tfMillisecond, startTime, left, right, tfMillisecond, endTime, 0, 0);
+  ZPlayers[0].GetPlayerVolume(left, right); //Start fade from the current volume
+  ZPlayers[0].SlideVolume(tfMillisecond, startTime, left, right, tfMillisecond, endTime, 0, 0);
+  {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Mix_FadeOutChannel(0, aFadeTime);
   {$ENDIF}
   {$IFDEF USEBASS}
-  BASS_ChannelSlideAttribute(fBassStream, BASS_ATTRIB_VOL, 0, aFadeTime);
+  BASS_ChannelSlideAttribute(fBassStreams[0], BASS_ATTRIB_VOL, 0, aFadeTime);
   {$ENDIF}
 end;
 
@@ -569,17 +562,20 @@ begin
   fFadeStarted := TimeGet;
   {$IFDEF USELIBZPLAY}
   //LibZPlay has a nice SlideVolume function we can use
-  ZPlayer.ResumePlayback; //Music may have been paused due to fade out
+  ZPlayers[0].ResumePlayback; //Music may have been paused due to fade out
   if aHandleCrackling then Sleep(25);
-  ZPlayer.GetPosition(startTime);
+  ZPlayers[0].GetPosition(startTime);
   endTime.ms := startTime.ms + aFadeTime;
-  ZPlayer.GetPlayerVolume(left, right); //Start fade from the current volume
-  ZPlayer.SlideVolume(tfMillisecond, startTime, left, right, tfMillisecond, endTime, Round(fVolume * 100), Round(fVolume * 100));
+  ZPlayers[0].GetPlayerVolume(left, right); //Start fade from the current volume
+  ZPlayers[0].SlideVolume(tfMillisecond, startTime, left, right, tfMillisecond, endTime, Round(fVolume * 100), Round(fVolume * 100));
+  {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Mix_FadeInMusic(SDLStreams[0], -1, aFadeTime);  //TODO possible wrong loop count
   {$ENDIF}
   {$IFDEF USEBASS}
-  BASS_ChannelPlay(fBassStream, False); //Music may have been paused due to fade out
+  BASS_ChannelPlay(fBassStreams[0], False); //Music may have been paused due to fade out
   if aHandleCrackling then Sleep(25);
-  BASS_ChannelSlideAttribute(fBassStream, BASS_ATTRIB_VOL, fVolume, aFadeTime);
+  BASS_ChannelSlideAttribute(fBassStreams[0], BASS_ATTRIB_VOL, fVolume, aFadeTime);
   {$ENDIF}
 end;
 
@@ -595,8 +591,11 @@ begin
                   if TimeSince(fFadeStarted) > fFadeTime then
                   begin
                     fFadeState := fsFaded;
-                    {$IFDEF USELIBZPLAY} ZPlayer.PausePlayback; {$ENDIF}
-                    {$IFDEF USEBASS} BASS_ChannelPause(fBassStream); {$ENDIF}
+                    {$IFDEF USELIBZPLAY} ZPlayers[0].PausePlayback; {$ENDIF}
+                    {$IFDEF USESDL_MIXER}
+                    Mix_Pause(0);
+                    {$ENDIF}
+                    {$IFDEF USEBASS} BASS_ChannelPause(fBassStreams[0]); {$ENDIF}
                   end
                   else
                   //Start playback of other file half way through the fade
@@ -604,13 +603,13 @@ begin
                     and (fToPlayAfterFade <> '') then
                   begin
                     fFadedToPlayOther := True;
-                    PlayOtherFile(fToPlayAfterFade);
+                    PlayFile(fToPlayAfterFade, 1);
                     fToPlayAfterFade := '';
                   end;
                 end;
   end;
 
-  if fFadedToPlayOther and (fFadeState = fsFaded) and IsOtherEnded then
+  if fFadedToPlayOther and (fFadeState = fsFaded) and IsEnded(1) then
   begin
     fFadedToPlayOther := False;
     Unfade;
@@ -622,8 +621,11 @@ procedure TKMMusicLib.Pause;
 begin
   if not fIsInitialized then Exit;
 
-  {$IFDEF USELIBZPLAY} ZPlayerOther.PausePlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelPause(fBassStream); {$ENDIF}
+  {$IFDEF USELIBZPLAY} ZPlayers[0].PausePlayback; {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Mix_Pause(0);
+  {$ENDIF}
+  {$IFDEF USEBASS} BASS_ChannelPause(fBassStreams[0]); {$ENDIF}
 end;
 
 
@@ -631,8 +633,11 @@ procedure TKMMusicLib.Resume;
 begin
   if not fIsInitialized then Exit;
 
-  {$IFDEF USELIBZPLAY} ZPlayer.ResumePlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelPlay(fBassStream, False); {$ENDIF}
+  {$IFDEF USELIBZPLAY} ZPlayers[0].ResumePlayback; {$ENDIF}
+  {$IFDEF USESDL_MIXER}
+  Mix_Resume(0);
+  {$ENDIF}
+  {$IFDEF USEBASS} BASS_ChannelPlay(fBassStreams[0], False); {$ENDIF}
 end;
 
 
@@ -648,21 +653,10 @@ begin
     if (fFadeState = fsFaded) or ((fFadeState = fsFadeOut) and fFadedToPlayOther) then
     begin
       fFadedToPlayOther := True;
-      PlayOtherFile(aFilename) //Switch playback immediately
+      PlayFile(aFilename, 1) //Switch playback immediately
     end
     else
       fToPlayAfterFade := aFilename; //We're still in the process of fading out, the file hasn't started yet
-end;
-
-
-procedure TKMMusicLib.StopPlayingOtherFile;
-begin
-  if not fIsInitialized then Exit;
-  {$IFDEF USELIBZPLAY} ZPlayerOther.StopPlayback; {$ENDIF}
-  {$IFDEF USEBASS} BASS_ChannelStop(fBassOtherStream); {$ENDIF}
-  fToPlayAfterFade := '';
-  if fFadeState = fsFadeOut then
-    fFadedToPlayOther := True; //Make sure the music starts again if we are currently fading out
 end;
 
 
@@ -673,55 +667,5 @@ begin
 
   Result := TruncateExt(ExtractFileName(fTracks[fTrackOrder[fIndex]]));
 end;
-
-
-(*
-//Doesn't work unless you change volume in Windows?
-s:= ExeDir + 'Music\SpiritOrig.mid';
-{PlayMidiFile(s);
-{StartSound(Form1.Handle, s);}
-MCISendString(PChar('play ' + s), nil, 0, 0);}
-*)
-
-
-(*
-function PlayMidiFile(FileName: UnicodeString):word;
-var
-  wdeviceid: integer;
-  mciOpen: tmci_open_parms;
-  mciPlay: tmci_play_parms;
-  mciStat: tmci_status_parms;
-begin
-  // Open the device by specifying the device and filename.
-  // MCI will attempt to choose the MIDI mapper as the output port.
-  mciopen.lpstrDeviceType := 'sequencer';
-  mciopen.lpstrElementName := pchar (filename);
-  Result := mciSendCommand ($0, mci_open , mci_open_type or mci_open_element, longint (@mciopen));
-  if Result <> 0 then Exit;
-  // The device opened successfully; get the device ID.
-  // Check if the output port is the MIDI mapper.
-  wDeviceID := mciOpen.wDeviceID;
-  mciStat.dwItem := MCI_SEQ_STATUS_PORT;
-  Result := mciSendCommand (wDeviceID, MCI_STATUS, MCI_STATUS_ITEM, longint (@mciStat));
-  if Result <> 0 then
-  begin
-    mciSendCommand (wDeviceID, MCI_CLOSE, 0, 0);
-    Exit;
-  end;
-  // Begin playback. The window procedure function for the parent
-  // Window will be notified with an MM_MCINOTIFY message when
-  // Playback is complete. At this time, the window procedure closes
-  // The device.
-  mciPlay.dwCallback := Form1.Handle;
-  Result := mciSendCommand (wDeviceID, MCI_PLAY,
-  MCI_NOTIFY, longint (@mciPlay));
-  if Result <> 0 then
-  begin
-    mciSendCommand (wDeviceID, MCI_CLOSE, 0, 0);
-    Exit;
-  end;
-end;
-*)
-
 
 end.
