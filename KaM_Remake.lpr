@@ -225,7 +225,10 @@ uses
   KM_NavMeshFloodPositioning in 'src\navmesh\KM_NavMeshFloodPositioning.pas',
   KM_NavMeshInfluences in 'src\navmesh\KM_NavMeshInfluences.pas',
   KM_NavMeshDefences in 'src\navmesh\KM_NavMeshDefences.pas',
-
+  {$IFNDEF NO_MUSIC}
+  SDL2 in 'src\ext\sdl2\units\sdl2.pas',
+  SDL2_MIXER in 'src\ext\sdl2\units\sdl2_mixer.pas',
+  {$ENDIF}
   {$IFDEF USESECUREAUTH}
     KM_NetAuthSecure in 'src\net\KM_NetAuthSecure.pas',
   {$ELSE}
