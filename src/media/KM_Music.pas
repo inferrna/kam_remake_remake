@@ -21,7 +21,7 @@ interface
 uses
   Types
   {$IFDEF USEBASS}     , Bass {$ENDIF}
-  {$IFDEF USESDL_MIXER}, SDL2, SDL2_mixer {$ENDIF}
+  {$IFDEF USESDL_MIXER}, SDL2, SDL2_mixer, strutils {$ENDIF}
   {$IFDEF USELIBZPLAY} , libZPlay {$ENDIF}
   ;
 
@@ -40,6 +40,7 @@ type
     fTrackOrder: TIntegerDynArray; //Each index points to an index of MusicTracks
     //MIDICount,MIDIIndex:integer;
     //MIDITracks: array[1..256]of string;
+    SDL2_supportedFormats: array[0..255] of PChar;
     fIsInitialized: Boolean;
     fEnabled: Boolean;
     fPrevVolume: Single; // Volume before mute
@@ -83,6 +84,7 @@ type
     procedure Fade(aFadeTime: Integer); overload;
     procedure SetVolume(aValue: Single; iStreamId: Integer);
     function  GetVolume(iStreamId: Integer): Single;
+    function  isFormatSupportedBySDL_mixer(const format: AnsiString): Boolean;
     procedure UnfadeStarting;
     procedure Unfade; overload;
     procedure Unfade(aFadeTime: Integer; aHandleCrackling: Boolean = False); overload;
@@ -117,12 +119,6 @@ begin
   fIsInitialized := True;
   fEnabled := True;
 
-  if not DirectoryExists(ExeDir + 'Music') then
-    ForceDirectories(ExeDir + 'Music');
-
-  ScanTracks(ExeDir + 'Music' + PathDelim);
-
-
   {$IFDEF USELIBZPLAY}
   ZPlayers[0] := ZPlay.Create; //Note: They should have used TZPlay not ZPlay for a class
   ZPlayers[1] := ZPlay.Create;
@@ -133,16 +129,22 @@ begin
     gLog.AddTime('Failed to initialize SDL: '+SDL_GetError());
     fIsInitialized := False;
   end;
-  if Mix_Init(MIX_INIT_MP3) <> MIX_INIT_MP3 then
+  if Mix_Init(MIX_INIT_MP3 or MIX_INIT_OGG or MIX_INIT_MID) and MIX_INIT_MP3 <> MIX_INIT_MP3 then
   begin
-    fIsInitialized := False;
+    gLog.AddTime('SDL: failed to init SDL with mp3 support ');
   end;
   if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 640) < 0) then
   begin
-    gLog.AddTime('Failed to open audio device: ' + Mix_GetError());
+    gLog.AddTime('SDL: failed to open audio device: ' + Mix_GetError());
     fIsInitialized := False;
     Mix_Quit();
     SDL_Quit();
+  end;
+
+  for I := 0 to Mix_GetNumChunkDecoders() do
+  begin
+    SDL2_supportedFormats[I] := Mix_GetChunkDecoder(i);
+    gLog.AddTime('Foung SDL2 audio decoder for '+Mix_GetChunkDecoder(i));
   end;
   //SDLStream, SDLStreamOther: PMix_Music;
   {$ENDIF}
@@ -156,6 +158,11 @@ begin
     fIsInitialized := False;
   end;
   {$ENDIF}
+
+  //Scan tracks after library init
+  if not DirectoryExists(ExeDir + 'Music') then
+    ForceDirectories(ExeDir + 'Music');
+  ScanTracks(ExeDir + 'Music' + PathDelim);
 
   SetVolume(aVolume, 0);
 
@@ -285,19 +292,37 @@ begin
 end;
 
 
+function TKMMusicLib.isFormatSupportedBySDL_mixer(const format: AnsiString): Boolean;
+var I: Integer;
+begin
+  for I := 0 to Length(SDL2_supportedFormats) do
+  begin
+    gLog.AddTime('Try to find '+format+' in ' + SDL2_supportedFormats[I]);
+    if (SDL2_supportedFormats[I] = nil) or (SDL2_supportedFormats[I] = '') then
+      Break
+    else if AnsiContainsStr(AnsiString(SDL2_supportedFormats[I]), format) then
+    begin
+      Exit(True);
+    end;
+  end;
+  Result := False;
+end;
+
 procedure TKMMusicLib.ScanTracks(const aPath: UnicodeString);
 var
+  I: Word;
   searchRec: TSearchRec;
+  sdl2_formats: array[0..255] of PChar;
 begin
   if not fIsInitialized then Exit;
   fCount := 0;
   if not DirectoryExists(aPath) then Exit;
-
   SetLength(fTracks, 255);
 
   FindFirst(aPath + '*.*', faAnyFile - faDirectory, searchRec);
   try
     repeat
+      {$IFNDEF USESDL_MIXER}
       if (GetFileExt(searchRec.Name) = 'MP3') //Allow all formats supported by both libraries
       or (GetFileExt(searchRec.Name) = 'MP2')
       or (GetFileExt(searchRec.Name) = 'MP1')
@@ -306,14 +331,15 @@ begin
       {$IFDEF USEBASS} //Formats supported by BASS but not LibZPlay
       or (GetFileExt(SearchRec.Name) = 'AIFF')
       {$ENDIF}
-      {$IFDEF USESDL_MIXER}
-      //or (GetFileExt(SearchRec.Name) = 'MIDI' //TODO: have to test if it works
-      {$ENDIF}
       {$IFDEF USELIBZPLAY} //Formats supported by LibZPlay but not BASS
       or (GetFileExt(searchRec.Name) = 'FLAC')
       or (GetFileExt(searchRec.Name) = 'OGA')
       or (GetFileExt(searchRec.Name) = 'AC3')
       or (GetFileExt(searchRec.Name) = 'AAC')
+      {$ENDIF}
+      {$ENDIF}
+      {$IFDEF USESDL_MIXER}
+      if isFormatSupportedBySDL_mixer(GetFileExt(SearchRec.Name))
       {$ENDIF}
       then
       begin
