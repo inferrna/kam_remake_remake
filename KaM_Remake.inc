@@ -53,7 +53,7 @@
 //Use secure authentication unit (KM_NetAuthSecure)
 {$DEFINE USESECUREAUTH}
 {$ELSE}
-{$DEFINE NO_MUSIC}
+//{$DEFINE NO_MUSIC}
 {$ENDIF}
 
 //Enable perflog (should be disabled for release / release candidate versions)
