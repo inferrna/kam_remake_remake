@@ -114,11 +114,14 @@ const
 constructor TKMMusicLib.Create(aVolume: Single);
 var
   I: Integer;
+  supMP3: Boolean;
 begin
   inherited Create;
   fIsInitialized := True;
+  supMP3 := False;
   fEnabled := True;
-
+  fCount := 0;
+  fIndex := -1;
   {$IFDEF USELIBZPLAY}
   ZPlayers[0] := ZPlay.Create; //Note: They should have used TZPlay not ZPlay for a class
   ZPlayers[1] := ZPlay.Create;
@@ -144,9 +147,11 @@ begin
   for I := 0 to Mix_GetNumChunkDecoders() do
   begin
     SDL2_supportedFormats[I] := Mix_GetChunkDecoder(i);
-    gLog.AddTime('Foung SDL2 audio decoder for '+Mix_GetChunkDecoder(i));
+    if AnsiContainsStr(SDL2_supportedFormats[I], 'MP3') then supMP3 := True;
+    gLog.AddTime('Found SDL2 audio decoder for '+Mix_GetChunkDecoder(i));
   end;
-  //SDLStream, SDLStreamOther: PMix_Music;
+  if supMP3 then SDL2_supportedFormats[I] := 'MP2';
+
   {$ENDIF}
 
   {$IFDEF USEBASS}
@@ -197,16 +202,23 @@ end;
 
 
 procedure TKMMusicLib.PlayFile(const FileName: UnicodeString; iStreamId: Integer);
-{$IFDEF USEBASS}
 var
+  tmpIndex: Integer;
+{$IFDEF USEBASS}
   errorCode: Integer;
+{$ENDIF}
+{$IFDEF USESDL_MIXER}
+  rWopsPtr: PSDL_RWops;
 {$ENDIF}
 begin
   if not fIsInitialized then Exit;
   if fFadeState <> fsNone then Exit; //Don't start a new track while fading or faded
 
+
   //Cancel previous sound
+  tmpIndex := fIndex;
   Stop(iStreamId);
+  fIndex := tmpIndex;
 
   if not FileExists(FileName) then Exit; //Make it silent
 
@@ -217,7 +229,15 @@ begin
     Exit; //Playback failed to start
   {$ENDIF}
   {$IFDEF USESDL_MIXER}
-  SDLStreams[iStreamId] := Mix_LoadMUS(PChar(AnsiString(filename)));
+  //
+  if GetFileExt(filename) = 'MP2' then
+  begin //  By default SDL2_mixer tries to open mp2 file as mod
+    rWopsPtr := SDL_RWFromFile(PChar(AnsiString(filename)), 'r');
+    SDLStreams[iStreamId] := Mix_LoadMUSType_RW(rWopsPtr, TMix_MusicType.MUS_MP3, 1);
+  end
+  else
+    SDLStreams[iStreamId] := Mix_LoadMUS(PChar(AnsiString(filename)));
+
   if SDLStreams[iStreamId] = nil then
   begin
      gLog.AddTime('Failed to load music '+filename+'! SDL_mixer Error: '+Mix_GetError());
@@ -372,13 +392,13 @@ var
   prevVolume: Single;
 begin
   if not fIsInitialized then Exit;
-  if fCount = 0 then Exit; //no music files found
+  if fCount < 1 then Exit; //no music files found
   if fIndex = 0 then Exit; //It's already playing
   fIndex := 0;
   // There was audio crackling after loading screen, here we fix it by setting a delay and fading the volume.
   prevVolume := fVolume;
   fVolume := 0;
-  PlayFile(fTracks[0], 0);
+  PlayFile(fTracks[fTrackOrder[fIndex]], 0);
   fVolume := prevVolume;
   UnfadeStarting;
 end;
@@ -618,9 +638,7 @@ begin
                   begin
                     fFadeState := fsFaded;
                     {$IFDEF USELIBZPLAY} ZPlayers[0].PausePlayback; {$ENDIF}
-                    {$IFDEF USESDL_MIXER}
-                    Mix_Pause(0);
-                    {$ENDIF}
+                    {$IFDEF USESDL_MIXER}Mix_Pause(0);{$ENDIF}
                     {$IFDEF USEBASS} BASS_ChannelPause(fBassStreams[0]); {$ENDIF}
                   end
                   else
@@ -648,9 +666,7 @@ begin
   if not fIsInitialized then Exit;
 
   {$IFDEF USELIBZPLAY} ZPlayers[0].PausePlayback; {$ENDIF}
-  {$IFDEF USESDL_MIXER}
-  Mix_Pause(0);
-  {$ENDIF}
+  {$IFDEF USESDL_MIXER}Mix_Pause(0);{$ENDIF}
   {$IFDEF USEBASS} BASS_ChannelPause(fBassStreams[0]); {$ENDIF}
 end;
 
@@ -660,9 +676,7 @@ begin
   if not fIsInitialized then Exit;
 
   {$IFDEF USELIBZPLAY} ZPlayers[0].ResumePlayback; {$ENDIF}
-  {$IFDEF USESDL_MIXER}
-  Mix_Resume(0);
-  {$ENDIF}
+  {$IFDEF USESDL_MIXER}Mix_Resume(0);{$ENDIF}
   {$IFDEF USEBASS} BASS_ChannelPlay(fBassStreams[0], False); {$ENDIF}
 end;
 
@@ -688,8 +702,9 @@ end;
 
 function TKMMusicLib.GetTrackTitle: UnicodeString;
 begin
-  if not fIsInitialized then Exit;
-  if not InRange(fIndex, Low(fTracks), High(fTracks)) then Exit;
+  gLog.AddTime('GetTrackTitle call');
+  if not fIsInitialized then Exit('Music not initialized');
+  if not InRange(fIndex, Low(fTracks), High(fTracks)) then Exit(format('Track index %d not in range %d - %d', [fIndex, Low(fTracks), High(fTracks)]));
 
   Result := TruncateExt(ExtractFileName(fTracks[fTrackOrder[fIndex]]));
 end;
