@@ -1,7 +1,9 @@
 unit KM_Resolutions;
+
 {$I KaM_Remake.inc}
 interface
 
+//uses ptcgraph;
 
 type
   TKMScreenRes = record
@@ -79,61 +81,33 @@ end;
 
 
 procedure TKMResolutions.ReadAvailable;
-{$IFDEF MSWindows}
+//{$IFDEF MSWindows}
 var
   I, M, N: Integer;
-  devMode: TDevMode;
-{$ENDIF}
+//{$ENDIF}
 begin
-  {$IFDEF MSWindows}
-  I := 0;
-  fCount := 0;
-  while EnumDisplaySettings(nil, I, devMode) do
-  with devMode do //todo: Thats bad code, better get rid of this "with"
-  begin
-    Inc(I);
-    // Take only 32bpp modes
-    // Exclude rotated modes, as Win reports them too
-    if SupportedRes(dmPelsWidth, dmPelsHeight, dmDisplayFrequency, dmBitsPerPel) then
-    begin
-      // Find next empty place and avoid duplicating
-      N := 0;
-      while (N < fCount) and (fItems[N].Width <> 0)
-            and ((fItems[N].Width <> dmPelsWidth) or (fItems[N].Height <> dmPelsHeight)) do
-        Inc(N);
-
-      if N+1 > fCount then
-      begin
-        SetLength(fItems, N+1);
-        FillChar(fItems[N], SizeOf(TKMScreenResData), #0);
-        Inc(fCount);
-      end;
-
-      if (N < fCount) and (fItems[N].Width = 0) then
-      begin
-        fItems[N].Width := dmPelsWidth;
-        fItems[N].Height := dmPelsHeight;
-      end;
-
-      //Find next empty place and avoid duplicating
-      M := 0;
-      while (N < fCount) and (M < fItems[N].RefRateCount)
-            and (fItems[N].RefRate[M] <> 0)
-            and (fItems[N].RefRate[M] <> dmDisplayFrequency) do
-        Inc(M);
-
-      if M+1 > fItems[N].RefRateCount then
-      begin
-        SetLength(fItems[N].RefRate, M+1);
-        FillChar(fItems[N].RefRate[M], SizeOf(Word), #0);
-        Inc(fItems[N].RefRateCount);
-      end;
-
-      if (M < fItems[N].RefRateCount) and (N < fCount) and (fItems[N].RefRate[M] = 0) then
-        fItems[N].RefRate[M] := dmDisplayFrequency;
-    end;
-  end;
-  {$ENDIF}
+  //{$IFDEF MSWindows}
+  //Use PTCGraph
+  SetLength(fItems, 3);
+  N := 0;
+  fItems[N].Width := 1366;
+  fItems[N].Height := 768;
+  fItems[N].RefRateCount := 1;
+  SetLength(fItems[N].RefRate, 1);
+  fItems[N].RefRate[0] := 60;
+  N := 1;
+  fItems[N].Width := 1680;
+  fItems[N].Height := 1050;
+  fItems[N].RefRateCount := 1;
+  SetLength(fItems[N].RefRate, 1);
+  fItems[N].RefRate[0] := 60;
+  N := 2;
+  fItems[N].Width := 1600;
+  fItems[N].Height := 900;
+  fItems[N].RefRateCount := 1;
+  SetLength(fItems[N].RefRate, 1);
+  fItems[N].RefRate[0] := 60;
+  fCount := 3;
 end;
 
 
@@ -190,9 +164,8 @@ end;
 procedure TKMResolutions.Restore;
 begin
   if not fNeedsRestoring then Exit;
-  {$IFDEF MSWindows}
-    ChangeDisplaySettings(DEVMODE(nil^), 0);
-  {$ENDIF}
+  //TODO: set resolution via SDL
+  //ChangeDisplaySettings(DEVMODE(nil^), 0);
   fNeedsRestoring := False;
 end;
 
@@ -204,28 +177,25 @@ end;
 
 
 procedure TKMResolutions.SetResolution(const aResolution: TKMScreenRes);
-{$IFDEF MSWindows}
-var
-  deviceMode: TDeviceMode;
-{$ENDIF}
+
 begin
   //Double-check anything we get from outside
   Assert(IsValid(aResolution));
 
-  {$IFDEF MSWindows}
-  ZeroMemory(@deviceMode, SizeOf(deviceMode));
-  with deviceMode do
-  begin
-    dmSize := SizeOf(TDeviceMode);
-    dmPelsWidth := aResolution.Width;
-    dmPelsHeight := aResolution.Height;
-    dmBitsPerPel := 32;
-    dmDisplayFrequency := aResolution.RefRate;
-    dmFields := DM_DISPLAYFREQUENCY or DM_BITSPERPEL or DM_PELSWIDTH or DM_PELSHEIGHT;
-  end;
-
-  ChangeDisplaySettings(deviceMode, CDS_FULLSCREEN);
-  {$ENDIF}
+//  TODO: set resolution via SDL
+//  ZeroMemory(@deviceMode, SizeOf(deviceMode));
+//  with deviceMode do
+//  begin
+//    dmSize := SizeOf(TDeviceMode);
+//    dmPelsWidth := aResolution.Width;
+//    dmPelsHeight := aResolution.Height;
+//    dmBitsPerPel := 32;
+//    dmDisplayFrequency := aResolution.RefRate;
+//    dmFields := DM_DISPLAYFREQUENCY or DM_BITSPERPEL or DM_PELSWIDTH or DM_PELSHEIGHT;
+//  end;
+//
+//  ChangeDisplaySettings(deviceMode, CDS_FULLSCREEN);
+//
   fNeedsRestoring := True; //Resolution was changed so we must restore it when we exit
 end;
 
@@ -237,17 +207,7 @@ var
 {$ENDIF}
 begin
   //1. Try to reuse current resolution
-  {$IFDEF MSWindows}
-  EnumDisplaySettings(nil, Cardinal(-1){ENUM_CURRENT_SETTINGS}, devMode);
-  with devMode do
-  if SupportedRes(dmPelsWidth, dmPelsHeight, dmDisplayFrequency, dmBitsPerPel) then
-  begin
-    Result.Width := dmPelsWidth;
-    Result.Height := dmPelsHeight;
-    Result.RefRate := dmDisplayFrequency;
-    Exit;
-  end;
-  {$ENDIF}
+  //PTCGraph
 
   //2. Try to use first available resolution
   if fCount > 0 then

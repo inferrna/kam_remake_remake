@@ -2,7 +2,7 @@ unit KM_FormMain;
 {$I KaM_Remake.inc}
 interface
 uses
-  SysUtils, StrUtils, Classes, Math,
+  SysUtils, StrUtils, Classes, Math, SDL2, gtk2, gdk2, gdk2x,
   ComCtrls, Controls, Buttons, Dialogs, ExtCtrls, Forms, Graphics, Menus, StdCtrls,
   KM_RenderControl, KM_CommonTypes,
   KM_WindowParams, KM_SettingsDev, KM_GameTypes,
@@ -389,7 +389,7 @@ type
     TextHeight: Int32;
     fMissionDefOpenPath: UnicodeString;
     fOnControlsUpdated: TObjectIntegerEvent;
-
+    sdlWindow: PSDL_Window;
     fResExporter: TKMResExporter;
 
     procedure FormKeyDownProc(aKey: Word; aShift: TShiftState; aIsFirst: Boolean);
@@ -497,6 +497,28 @@ begin
 
   fStartVideoPlayed := False;
   RenderArea := TKMRenderControl.Create(Self);
+
+
+  //if (SDL_Init(SDL_INIT_EVERYTHING) <> 0) then
+  //begin
+  //  writeln('SDL_Init Error: '+SDL_GetError());
+  //  raise Exception.Create('SDL_Init failed');
+  //end;
+  //
+  //{$IFDEF LCLGTK2}
+  //// Linux with GTK2 widget-set
+  //sdlWindow := SDL_CreateWindowFrom(Pointer(GDK_WINDOW_XWINDOW(PGtkWidget(PtrUInt(RenderArea.Handle))^.window)));
+  //{$ELSE}
+  //sdlWindow := SDL_CreateWindowFrom(Pointer(RenderArea.Handle));
+  //{$ENDIF}
+  //
+  //if (sdlWindow = nil) then
+  //begin
+  //  writeln('SDL_CreateWindow Error: '+SDL_GetError());
+  //  raise Exception.Create('SDL_Init failed');
+  //end;
+
+     
   RenderArea.Parent := Self;
   RenderArea.Align := alClient;
   RenderArea.Color := clMaroon;

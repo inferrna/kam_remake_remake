@@ -460,19 +460,19 @@ begin
   //    1 * 4  They are converted from bitfield to actual cursor constants, see Arr array
   //    9 8 12
 
-  //Keys
+  ////Keys
   if ScrollKeyLeft  then fPosition.X := fPosition.X - scrollAdv;
   if ScrollKeyUp    then fPosition.Y := fPosition.Y - scrollAdv;
   if ScrollKeyRight then fPosition.X := fPosition.X + scrollAdv;
   if ScrollKeyDown  then fPosition.Y := fPosition.Y + scrollAdv;
   if ZoomKeyIn      then fZoom := fZoom * (1 + zoomAdv);
   if ZoomKeyOut     then fZoom := fZoom * (1 - zoomAdv);
-  //Mouse
-  if cursorPoint.X <= screenBounds.Left   + SCROLL_FLEX then begin inc(I,1); fPosition.X := fPosition.X - scrollAdv*(1+(screenBounds.Left   - cursorPoint.X)/SCROLL_FLEX); end;
-  if cursorPoint.Y <= screenBounds.Top    + SCROLL_FLEX then begin inc(I,2); fPosition.Y := fPosition.Y - scrollAdv*(1+(screenBounds.Top    - cursorPoint.Y)/SCROLL_FLEX); end;
-  if cursorPoint.X >= screenBounds.Right -1-SCROLL_FLEX then begin inc(I,4); fPosition.X := fPosition.X + scrollAdv*(1-(screenBounds.Right -1-cursorPoint.X)/SCROLL_FLEX); end;
-  if cursorPoint.Y >= screenBounds.Bottom-1-SCROLL_FLEX then begin inc(I,8); fPosition.Y := fPosition.Y + scrollAdv*(1-(screenBounds.Bottom-1-cursorPoint.Y)/SCROLL_FLEX); end;
-
+  ////Mouse
+  //if cursorPoint.X <= screenBounds.Left   + SCROLL_FLEX then begin inc(I,1); fPosition.X := fPosition.X - scrollAdv*(1+(screenBounds.Left   - cursorPoint.X)/SCROLL_FLEX); end;
+  //if cursorPoint.Y <= screenBounds.Top    + SCROLL_FLEX then begin inc(I,2); fPosition.Y := fPosition.Y - scrollAdv*(1+(screenBounds.Top    - cursorPoint.Y)/SCROLL_FLEX); end;
+  //if cursorPoint.X >= screenBounds.Right -1-SCROLL_FLEX then begin inc(I,4); fPosition.X := fPosition.X + scrollAdv*(1-(screenBounds.Right -1-cursorPoint.X)/SCROLL_FLEX); end;
+  //if cursorPoint.Y >= screenBounds.Bottom-1-SCROLL_FLEX then begin inc(I,8); fPosition.Y := fPosition.Y + scrollAdv*(1-(screenBounds.Bottom-1-cursorPoint.Y)/SCROLL_FLEX); end;
+  //
   //Now do actual the scrolling, if needed
   fScrolling := I <> 0;
   if fScrolling then
