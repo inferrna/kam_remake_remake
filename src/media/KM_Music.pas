@@ -76,7 +76,7 @@ type
     function IsEnded(iStreamId: Integer): Boolean;
     procedure Pause;
     procedure Resume;
-    procedure Stop(iStreamId: Integer);
+    procedure Stop;
     procedure ToggleMuted;
     procedure ToggleEnabled(aEnableMusic: Boolean);
     procedure ToggleShuffle(aEnableShuffle: Boolean);
@@ -217,7 +217,7 @@ begin
 
   //Cancel previous sound
   tmpIndex := fIndex;
-  Stop(iStreamId);
+  Stop;
   fIndex := tmpIndex;
 
   if not FileExists(FileName) then Exit; //Make it silent
@@ -450,13 +450,16 @@ end;
 
 
 
-procedure TKMMusicLib.Stop(iStreamId: Integer);
+procedure TKMMusicLib.Stop;
 begin
   if (Self = nil) or not fIsInitialized then Exit;
   {$IFDEF USELIBZPLAY} ZPlayers[iStreamId].StopPlayback; {$ENDIF}
   {$IFDEF USESDL_MIXER}
-  if Mix_HaltChannel(iStreamId) = -1 then
-     gLog.AddTime('Failed to halt channel '+iStreamId.toString+'! SDL_mixer Error: '+Mix_GetError());
+  if Mix_HaltMusic() = -1 then
+     gLog.AddTime('Failed to halt music '+'! SDL_mixer Error: '+Mix_GetError())
+  else
+     gLog.AddTime('Succeed to halt music ');
+
   {$ENDIF}
   {$IFDEF USEBASS} BASS_ChannelStop(fBassStreams[iStreamId]); {$ENDIF}
   fIndex := -1;
@@ -467,9 +470,9 @@ procedure TKMMusicLib.ToggleEnabled(aEnableMusic: Boolean);
 begin
   fEnabled := aEnableMusic;
   if aEnableMusic then
-    PlayMenuTrack //Start with the default track
+    PlayMenuTrack
   else
-    Stop(0);
+    Stop;
 end;
 
 

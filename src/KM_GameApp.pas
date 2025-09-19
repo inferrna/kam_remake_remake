@@ -260,7 +260,7 @@ begin
   //Doing so causes a 2nd exception which overrides 1st. Hence check <> nil on everything except Free (TObject.Free does that already)
 
   // Stop music immediately, so it doesn't keep playing and jerk while things get destroyed
-  if gMusic <> nil then gMusic.Stop(0);
+  if gMusic <> nil then gMusic.Stop;
 
   StopGame(grSilent);
 
