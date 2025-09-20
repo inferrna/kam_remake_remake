@@ -13,6 +13,7 @@ object FormMain: TFormMain
   Font.Name = 'MS Sans Serif'
   KeyPreview = True
   Menu = MainMenu1
+  Scaled = False
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -22,12 +23,10 @@ object FormMain: TFormMain
   OnKeyUp = FormKeyUp
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
-  LCLVersion = '3.4.0.0'
-  Scaled = False
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 21
-    Top = 818
+    Height = 20
+    Top = 819
     Width = 521
     Panels = <    
       item
@@ -65,24 +64,25 @@ object FormMain: TFormMain
   end
   object mainGroup: TGroupBox
     Left = 261
-    Height = 818
+    Height = 819
     Top = 0
     Width = 260
     Align = alRight
-    ClientHeight = 816
+    ClientHeight = 817
     ClientWidth = 258
     DoubleBuffered = False
     ParentBackground = False
     ParentDoubleBuffered = False
     TabOrder = 1
+    OnClick = mainGroupClick
     object cpMisc: TMyRollOut
       Left = 0
       Height = 24
       Top = 385
       Width = 200
       Caption = 'Misc'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 0
@@ -105,7 +105,7 @@ object FormMain: TFormMain
         Left = 168
         Height = 23
         Top = 100
-        Width = 54
+        Width = 62
         Caption = 'Bevel'
         Checked = True
         State = cbChecked
@@ -126,7 +126,7 @@ object FormMain: TFormMain
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
-        ClientHeight = 68
+        ClientHeight = 66
         ClientWidth = 207
         Columns = 2
         ItemIndex = 7
@@ -140,10 +140,10 @@ object FormMain: TFormMain
           'fntArial'
           'fntMonospaced'
         )
-        OnClick = ControlsUpdate
-        OnExit = radioGroupExit
         ParentBackground = False
         TabOrder = 1
+        OnClick = ControlsUpdate
+        OnExit = radioGroupExit
       end
     end
     object cpLogs: TMyRollOut
@@ -152,11 +152,12 @@ object FormMain: TFormMain
       Top = 361
       Width = 200
       Caption = 'Logs'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 1
+      OnClick = cpLogsClick
       CollapseKind = akTop
       ExpandedSize = 200
       ButtonPosition = akTop
@@ -176,7 +177,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 8
-        Width = 105
+        Width = 125
         Caption = 'GIP commands'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -185,16 +186,17 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 8
-        Width = 69
+        Width = 80
         Caption = 'Delivery'
         TabOrder = 1
+        OnChange = chkLogDeliveryChange
         OnClick = ControlsUpdate
       end
       object chkLogGameTick: TCheckBox
         Left = 8
         Height = 23
         Top = 40
-        Width = 77
+        Width = 92
         Caption = 'Game tick'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -203,7 +205,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 24
-        Width = 105
+        Width = 127
         Caption = 'Net connection'
         Checked = True
         State = cbChecked
@@ -214,7 +216,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 40
-        Width = 109
+        Width = 130
         Caption = 'Random Checks'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -223,7 +225,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 138
-        Width = 137
+        Width = 164
         Caption = 'Show logs in MP chat'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -242,7 +244,7 @@ object FormMain: TFormMain
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 61
+        ClientHeight = 59
         ClientWidth = 159
         ItemIndex = 0
         Items.Strings = (
@@ -251,16 +253,16 @@ object FormMain: TFormMain
           'All but ping/fps'
           'All packets'
         )
-        OnClick = ControlsUpdate
-        OnExit = radioGroupExit
         ParentBackground = False
         TabOrder = 6
+        OnClick = ControlsUpdate
+        OnExit = radioGroupExit
       end
       object chkLogSkipTempCmd: TCheckBox
         Left = 120
         Height = 23
         Top = 24
-        Width = 138
+        Width = 169
         Caption = 'Skip temp commands'
         Checked = True
         State = cbChecked
@@ -271,7 +273,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 156
-        Width = 115
+        Width = 134
         Caption = 'Show logs in GUI'
         TabOrder = 8
         OnClick = ControlsUpdate
@@ -280,7 +282,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 156
-        Width = 126
+        Width = 151
         Caption = 'Update log for GUI'
         TabOrder = 9
         OnClick = ControlsUpdate
@@ -357,11 +359,11 @@ object FormMain: TFormMain
         Frequency = 5
         Max = 90
         Min = -90
-        OnChange = ControlsUpdate
         PageSize = 5
         Position = 0
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 0
       end
       object tbAngleY: TTrackBar
@@ -372,11 +374,11 @@ object FormMain: TFormMain
         Frequency = 5
         Max = 90
         Min = -90
-        OnChange = ControlsUpdate
         PageSize = 5
         Position = 0
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 1
       end
       object tbAngleZ: TTrackBar
@@ -387,11 +389,11 @@ object FormMain: TFormMain
         Frequency = 5
         Max = 90
         Min = -90
-        OnChange = ControlsUpdate
         PageSize = 5
         Position = 0
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 2
       end
       object tbBuildingStep: TTrackBar
@@ -400,17 +402,17 @@ object FormMain: TFormMain
         Top = 55
         Width = 95
         Max = 100
-        OnChange = ControlsUpdate
         Position = 0
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 3
       end
       object chkSnowHouses: TCheckBox
         Left = 8
         Height = 23
         Top = 93
-        Width = 94
+        Width = 110
         Caption = 'Snow houses'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -419,7 +421,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 109
-        Width = 130
+        Width = 159
         Caption = 'Interpolated render'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -430,17 +432,17 @@ object FormMain: TFormMain
         Top = 74
         Width = 95
         Max = 200
-        OnChange = ControlsUpdate
         Position = 130
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 6
       end
       object chkInterpolatedAnims: TCheckBox
         Left = 8
         Height = 23
         Top = 125
-        Width = 153
+        Width = 188
         Caption = 'Interpolated animations'
         TabOrder = 7
         OnClick = ControlsUpdate
@@ -452,8 +454,8 @@ object FormMain: TFormMain
       Top = 313
       Width = 200
       Caption = 'User Interface'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 3
@@ -476,7 +478,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 8
-        Width = 113
+        Width = 135
         Caption = 'Controls bounds'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -485,7 +487,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 8
-        Width = 90
+        Width = 106
         Caption = 'Controls IDs'
         TabOrder = 1
         OnClick = ControlsUpdate
@@ -494,7 +496,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 24
-        Width = 90
+        Width = 106
         Caption = 'Text bounds'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -503,7 +505,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 24
-        Width = 109
+        Width = 133
         Caption = 'Focused control'
         TabOrder = 3
         OnClick = ControlsUpdate
@@ -512,7 +514,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 40
-        Width = 129
+        Width = 157
         Caption = 'Control mouse over'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -521,7 +523,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 39
-        Width = 109
+        Width = 132
         Caption = 'Skip render text'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -530,7 +532,7 @@ object FormMain: TFormMain
         Left = 9
         Height = 23
         Top = 71
-        Width = 126
+        Width = 153
         Caption = 'Cursor coordinates'
         TabOrder = 6
         OnClick = ControlsUpdate
@@ -542,8 +544,8 @@ object FormMain: TFormMain
       Top = 289
       Width = 200
       Caption = 'Perf Logs'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 4
@@ -609,7 +611,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 57
-        Width = 44
+        Width = 49
         Caption = 'Eye'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -618,7 +620,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 41
-        Width = 53
+        Width = 60
         Caption = 'Build'
         TabOrder = 1
         OnClick = ControlsUpdate
@@ -627,7 +629,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 41
-        Width = 67
+        Width = 80
         Caption = 'Combat'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -636,7 +638,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 25
-        Width = 103
+        Width = 121
         Caption = 'Avoid building'
         TabOrder = 3
         OnClick = ControlsUpdate
@@ -645,7 +647,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 8
-        Width = 66
+        Width = 78
         Caption = 'Balance'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -654,7 +656,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 75
-        Width = 73
+        Width = 87
         Caption = 'Defences'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -663,7 +665,7 @@ object FormMain: TFormMain
         Left = 184
         Height = 23
         Top = 88
-        Width = 62
+        Width = 72
         Caption = 'Routes'
         TabOrder = 6
         OnClick = ControlsUpdate
@@ -672,7 +674,7 @@ object FormMain: TFormMain
         Left = 184
         Height = 23
         Top = 73
-        Width = 70
+        Width = 85
         Caption = 'Flat area'
         TabOrder = 7
         OnClick = ControlsUpdate
@@ -681,7 +683,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 8
-        Width = 74
+        Width = 86
         Caption = 'Navmesh'
         TabOrder = 8
         OnClick = ControlsUpdate
@@ -690,7 +692,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 24
-        Width = 84
+        Width = 97
         Caption = 'Ownership'
         TabOrder = 9
         OnClick = ControlsUpdate
@@ -699,7 +701,7 @@ object FormMain: TFormMain
         Left = 184
         Height = 23
         Top = 57
-        Width = 45
+        Width = 51
         Caption = 'Soil'
         TabOrder = 10
         OnClick = ControlsUpdate
@@ -711,10 +713,10 @@ object FormMain: TFormMain
         Width = 101
         Max = 255
         Min = 64
-        OnChange = ControlsUpdate
         Position = 64
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 11
         Visible = False
       end
@@ -725,10 +727,10 @@ object FormMain: TFormMain
         Width = 101
         Max = 255
         Min = 64
-        OnChange = ControlsUpdate
         Position = 64
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 12
         Visible = False
       end
@@ -736,7 +738,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 105
-        Width = 83
+        Width = 97
         Caption = 'Supervisor'
         TabOrder = 13
         OnClick = ControlsUpdate
@@ -745,7 +747,7 @@ object FormMain: TFormMain
         Left = 25
         Height = 23
         Top = 89
-        Width = 69
+        Width = 83
         Caption = 'Animate'
         TabOrder = 14
         OnClick = ControlsUpdate
@@ -754,7 +756,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 121
-        Width = 125
+        Width = 154
         Caption = 'Vector Field Enemy'
         TabOrder = 15
         OnClick = ControlsUpdate
@@ -763,7 +765,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 136
-        Width = 68
+        Width = 79
         Caption = 'Clusters'
         TabOrder = 16
         OnClick = ControlsUpdate
@@ -772,7 +774,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 151
-        Width = 96
+        Width = 116
         Caption = 'Allied Groups'
         TabOrder = 17
         OnClick = ControlsUpdate
@@ -781,7 +783,7 @@ object FormMain: TFormMain
         Left = 25
         Height = 23
         Top = 58
-        Width = 88
+        Width = 103
         Caption = 'Pathfinding'
         TabOrder = 18
         OnClick = ControlsUpdate
@@ -790,7 +792,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 121
-        Width = 109
+        Width = 135
         Caption = 'Vector Field Ally'
         TabOrder = 19
         OnClick = ControlsUpdate
@@ -801,8 +803,8 @@ object FormMain: TFormMain
         Top = 5
         Width = 45
         MaxValue = 9999999
-        OnChange = ControlsUpdate
         TabOrder = 20
+        OnChange = ControlsUpdate
       end
     end
     object cpScripting: TMyRollOut
@@ -811,8 +813,8 @@ object FormMain: TFormMain
       Top = 241
       Width = 200
       Caption = 'Scripting'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 6
@@ -836,7 +838,7 @@ object FormMain: TFormMain
         Height = 23
         Hint = 'Show exect error position (col/row/module), but significantly slow down script execution'
         Top = 8
-        Width = 114
+        Width = 135
         Caption = 'Debug Scripting '
         ParentShowHint = False
         ShowHint = True
@@ -876,7 +878,7 @@ object FormMain: TFormMain
         Top = 28
         Width = 225
         Caption = 'Find object by UID'
-        ClientHeight = 74
+        ClientHeight = 89
         ClientWidth = 223
         Enabled = False
         ParentBackground = False
@@ -908,8 +910,8 @@ object FormMain: TFormMain
           Top = 16
           Width = 97
           MaxValue = 2147483647
-          OnChange = ControlsUpdate
           TabOrder = 0
+          OnChange = ControlsUpdate
         end
         object btFindObjByUID: TButton
           Left = 8
@@ -927,8 +929,8 @@ object FormMain: TFormMain
           Width = 90
           MaxValue = 2147483647
           MinValue = -2147483648
-          OnChange = ControlsUpdate
           TabOrder = 2
+          OnChange = ControlsUpdate
         end
         object seWarriorUID: TSpinEdit
           Left = 112
@@ -937,8 +939,8 @@ object FormMain: TFormMain
           Width = 97
           MaxValue = 2147483647
           MinValue = -2147483648
-          OnChange = ControlsUpdate
           TabOrder = 3
+          OnChange = ControlsUpdate
         end
       end
       object GroupBox2: TGroupBox
@@ -947,7 +949,7 @@ object FormMain: TFormMain
         Top = 122
         Width = 225
         Caption = 'Debug input'
-        ClientHeight = 45
+        ClientHeight = 60
         ClientWidth = 223
         ParentBackground = False
         TabOrder = 1
@@ -972,9 +974,9 @@ object FormMain: TFormMain
           Width = 90
           MaxValue = 2147483647
           MinValue = -2147483648
-          OnChange = ControlsUpdate
           TabStop = False
           TabOrder = 0
+          OnChange = ControlsUpdate
         end
         object edDebugText: TEdit
           Left = 112
@@ -990,7 +992,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 6
-        Width = 165
+        Width = 203
         Caption = 'Enable ''Find object by UID'''
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -1026,7 +1028,7 @@ object FormMain: TFormMain
         Left = 12
         Height = 23
         Top = 8
-        Width = 183
+        Width = 224
         Caption = 'Allow load unsupported saves'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -1045,7 +1047,7 @@ object FormMain: TFormMain
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 6
-        ClientHeight = 58
+        ClientHeight = 56
         ClientWidth = 223
         Columns = 6
         ItemIndex = 0
@@ -1069,11 +1071,11 @@ object FormMain: TFormMain
           '17'
           '18'
         )
-        OnClick = RGPlayerClick
-        OnExit = radioGroupExit
         ParentBackground = False
         ParentBidiMode = False
         TabOrder = 1
+        OnClick = RGPlayerClick
+        OnExit = radioGroupExit
       end
       object gbSaveGameMapToImage: TGroupBox
         Left = 8
@@ -1082,7 +1084,7 @@ object FormMain: TFormMain
         Top = 111
         Width = 224
         Caption = 'Game images'
-        ClientHeight = 84
+        ClientHeight = 99
         ClientWidth = 222
         ParentBackground = False
         TabOrder = 2
@@ -1102,9 +1104,9 @@ object FormMain: TFormMain
           Enabled = False
           MaxValue = 10200
           MinValue = 768
-          OnChange = ControlsUpdate
           TabOrder = 0
           Value = 5100
+          OnChange = ControlsUpdate
         end
         object rgImageType: TRadioGroup
           Left = 152
@@ -1120,7 +1122,7 @@ object FormMain: TFormMain
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 58
+          ClientHeight = 56
           ClientWidth = 64
           ItemIndex = 0
           Items.Strings = (
@@ -1128,11 +1130,11 @@ object FormMain: TFormMain
             'png'
             'bmp'
           )
-          OnClick = RGPlayerClick
-          OnExit = radioGroupExit
           ParentBackground = False
           ParentBidiMode = False
           TabOrder = 1
+          OnClick = RGPlayerClick
+          OnExit = radioGroupExit
         end
         object btnSaveMapImage: TButton
           Left = 8
@@ -1163,8 +1165,8 @@ object FormMain: TFormMain
       Top = 169
       Width = 200
       Caption = 'Debug Output'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 9
@@ -1187,7 +1189,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 6
-        Width = 76
+        Width = 86
         Caption = 'UIDs by T'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -1196,7 +1198,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 6
-        Width = 98
+        Width = 118
         Caption = 'Selection Info'
         TabOrder = 1
         OnClick = ControlsUpdate
@@ -1205,7 +1207,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 22
-        Width = 59
+        Width = 67
         Caption = 'Hands'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -1214,7 +1216,7 @@ object FormMain: TFormMain
         Left = 120
         Height = 23
         Top = 38
-        Width = 45
+        Width = 49
         Caption = 'GIP'
         TabOrder = 3
         OnClick = ControlsUpdate
@@ -1223,7 +1225,7 @@ object FormMain: TFormMain
         Left = 168
         Height = 23
         Top = 38
-        Width = 68
+        Width = 79
         Caption = 'as Bytes'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -1232,7 +1234,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 38
-        Width = 45
+        Width = 51
         Caption = 'FPS'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -1241,7 +1243,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 22
-        Width = 77
+        Width = 92
         Caption = 'Game tick'
         TabOrder = 6
         OnClick = ControlsUpdate
@@ -1250,7 +1252,7 @@ object FormMain: TFormMain
         Left = 9
         Height = 23
         Top = 54
-        Width = 74
+        Width = 89
         Caption = 'Viewport'
         TabOrder = 7
         OnClick = ControlsUpdate
@@ -1262,8 +1264,8 @@ object FormMain: TFormMain
       Top = 145
       Width = 200
       Caption = 'Debug Terrain'
-      ClientHeight = 24
-      ClientWidth = 200
+      ClientHeight = 20
+      ClientWidth = 196
       Enabled = True
       ParentBackground = False
       TabOrder = 10
@@ -1286,7 +1288,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 6
-        Width = 82
+        Width = 96
         Caption = 'Terrain IDs'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -1295,7 +1297,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 22
-        Width = 94
+        Width = 112
         Caption = 'Terrain Kinds'
         TabOrder = 1
         OnClick = ControlsUpdate
@@ -1304,7 +1306,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 38
-        Width = 108
+        Width = 131
         Caption = 'Terrain overlays'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -1313,7 +1315,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 54
-        Width = 99
+        Width = 118
         Caption = 'Terrain height'
         TabOrder = 3
         OnClick = ControlsUpdate
@@ -1322,7 +1324,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 70
-        Width = 79
+        Width = 98
         Caption = 'Jam meter'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -1331,7 +1333,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 86
-        Width = 80
+        Width = 94
         Caption = 'Objects ID'
         TabOrder = 5
         OnClick = ControlsUpdate
@@ -1340,7 +1342,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 102
-        Width = 70
+        Width = 83
         Caption = 'Tree age'
         TabOrder = 6
         OnClick = ControlsUpdate
@@ -1349,7 +1351,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 118
-        Width = 73
+        Width = 86
         Caption = 'Field age'
         TabOrder = 7
         OnClick = ControlsUpdate
@@ -1358,7 +1360,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 134
-        Width = 68
+        Width = 80
         Caption = 'Tile lock'
         TabOrder = 8
         OnClick = ControlsUpdate
@@ -1367,7 +1369,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 150
-        Width = 80
+        Width = 95
         Caption = 'Tile owner'
         TabOrder = 9
         OnClick = ControlsUpdate
@@ -1376,7 +1378,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 166
-        Width = 69
+        Width = 81
         Caption = 'Tile Unit'
         TabOrder = 10
         OnClick = ControlsUpdate
@@ -1385,7 +1387,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 182
-        Width = 84
+        Width = 101
         Caption = 'Vertex Unit'
         TabOrder = 11
         OnClick = ControlsUpdate
@@ -1394,7 +1396,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 199
-        Width = 74
+        Width = 86
         Caption = 'Tiles grid'
         TabOrder = 12
         OnClick = ControlsUpdate
@@ -1403,7 +1405,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 6
-        Width = 138
+        Width = 167
         Caption = 'Debug Terrain render'
         TabOrder = 13
         OnClick = ControlsUpdate
@@ -1414,7 +1416,7 @@ object FormMain: TFormMain
         Top = 24
         Width = 129
         Caption = 'Render Terrain'
-        ClientHeight = 152
+        ClientHeight = 150
         ClientWidth = 127
         ParentBackground = False
         TabOrder = 14
@@ -1422,7 +1424,7 @@ object FormMain: TFormMain
           Left = 8
           Height = 23
           Top = 16
-          Width = 126
+          Width = 153
           Caption = 'Render Animations'
           Checked = True
           State = cbChecked
@@ -1433,7 +1435,7 @@ object FormMain: TFormMain
           Left = 8
           Height = 23
           Top = 32
-          Width = 111
+          Width = 130
           Caption = 'Render Lighting'
           Checked = True
           State = cbChecked
@@ -1444,7 +1446,7 @@ object FormMain: TFormMain
           Left = 8
           Height = 23
           Top = 48
-          Width = 108
+          Width = 130
           Caption = 'Render Shadow'
           Checked = True
           State = cbChecked
@@ -1457,7 +1459,7 @@ object FormMain: TFormMain
           Top = 66
           Width = 81
           Caption = 'Layers'
-          ClientHeight = 75
+          ClientHeight = 73
           ClientWidth = 79
           Enabled = False
           ParentBackground = False
@@ -1466,7 +1468,7 @@ object FormMain: TFormMain
             Left = 8
             Height = 23
             Top = 16
-            Width = 50
+            Width = 57
             Caption = 'Base'
             Checked = True
             State = cbChecked
@@ -1478,7 +1480,7 @@ object FormMain: TFormMain
             Left = 8
             Height = 23
             Top = 32
-            Width = 39
+            Width = 44
             Caption = '#1'
             Checked = True
             State = cbChecked
@@ -1490,7 +1492,7 @@ object FormMain: TFormMain
             Left = 8
             Height = 23
             Top = 48
-            Width = 39
+            Width = 44
             Caption = '#2'
             Checked = True
             State = cbChecked
@@ -1502,7 +1504,7 @@ object FormMain: TFormMain
             Left = 8
             Height = 23
             Top = 64
-            Width = 39
+            Width = 44
             Caption = '#3'
             Checked = True
             State = cbChecked
@@ -1551,7 +1553,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 56
-        Width = 84
+        Width = 99
         Caption = 'Unit hitbox'
         TabOrder = 0
         OnClick = ControlsUpdate
@@ -1560,7 +1562,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 24
-        Width = 84
+        Width = 100
         Caption = 'Unit routes'
         TabOrder = 1
         OnClick = ControlsUpdate
@@ -1569,7 +1571,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 40
-        Width = 92
+        Width = 111
         Caption = 'Terrain wires'
         TabOrder = 2
         OnClick = ControlsUpdate
@@ -1578,7 +1580,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 72
-        Width = 89
+        Width = 105
         Caption = 'Skip Render'
         TabOrder = 3
         OnClick = ControlsUpdate
@@ -1587,7 +1589,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 88
-        Width = 85
+        Width = 99
         Caption = 'Skip Sound'
         TabOrder = 4
         OnClick = ControlsUpdate
@@ -1598,18 +1600,18 @@ object FormMain: TFormMain
         Top = 4
         Width = 128
         Max = 14
-        OnChange = ControlsUpdate
         PageSize = 1
         Position = 0
         TickMarks = tmBoth
         TickStyle = tsNone
+        OnChange = ControlsUpdate
         TabOrder = 5
       end
       object chkShowDefencePos: TCheckBox
         Left = 128
         Height = 23
         Top = 136
-        Width = 120
+        Width = 146
         Caption = 'Show defence pos'
         TabOrder = 6
         OnClick = ControlsUpdate
@@ -1618,7 +1620,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 120
-        Width = 113
+        Width = 135
         Caption = 'Show unit radius'
         TabOrder = 7
         OnClick = ControlsUpdate
@@ -1627,7 +1629,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 104
-        Width = 122
+        Width = 149
         Caption = 'Show tower radius'
         TabOrder = 8
         OnClick = ControlsUpdate
@@ -1636,7 +1638,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 88
-        Width = 129
+        Width = 154
         Caption = 'Show mining radius'
         TabOrder = 9
         OnClick = ControlsUpdate
@@ -1645,7 +1647,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 72
-        Width = 100
+        Width = 120
         Caption = 'Show overlays'
         Checked = True
         State = cbChecked
@@ -1656,7 +1658,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 56
-        Width = 83
+        Width = 97
         Caption = 'Show units'
         Checked = True
         State = cbChecked
@@ -1667,7 +1669,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 40
-        Width = 94
+        Width = 110
         Caption = 'Show houses'
         Checked = True
         State = cbChecked
@@ -1678,7 +1680,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 24
-        Width = 94
+        Width = 114
         Caption = 'Show objects'
         Checked = True
         State = cbChecked
@@ -1689,7 +1691,7 @@ object FormMain: TFormMain
         Left = 128
         Height = 23
         Top = 152
-        Width = 112
+        Width = 137
         Caption = 'Show flat terrain'
         TabOrder = 14
         OnClick = ControlsUpdate
@@ -1698,7 +1700,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 104
-        Width = 95
+        Width = 112
         Caption = 'Paint Sounds'
         TabOrder = 15
         OnClick = ControlsUpdate
@@ -1707,7 +1709,7 @@ object FormMain: TFormMain
         Left = 80
         Height = 23
         Top = 24
-        Width = 54
+        Width = 63
         Caption = 'Steps'
         TabOrder = 16
         OnClick = ControlsUpdate
@@ -1716,7 +1718,7 @@ object FormMain: TFormMain
         Left = 8
         Height = 23
         Top = 120
-        Width = 120
+        Width = 147
         Caption = 'Viewport position'
         TabOrder = 17
         OnClick = ControlsUpdate
@@ -1773,7 +1775,7 @@ object FormMain: TFormMain
         Height = 23
         Hint = 'Autosave is disabled while on very fast speedup'
         Top = 5
-        Width = 85
+        Width = 102
         Caption = 'Speed x200'
         TabOrder = 0
         OnClick = chkSuperSpeedClick
@@ -1793,8 +1795,8 @@ object FormMain: TFormMain
         Top = 28
         Width = 90
         MaxValue = 9999999
-        OnChange = ControlsUpdate
         TabOrder = 2
+        OnChange = ControlsUpdate
       end
       object seMakeSaveptBeforeTick: TSpinEdit
         Left = 149
@@ -1802,8 +1804,8 @@ object FormMain: TFormMain
         Top = 52
         Width = 90
         MaxValue = 9999999
-        OnChange = ControlsUpdate
         TabOrder = 3
+        OnChange = ControlsUpdate
       end
       object seCustomSeed: TSpinEdit
         Left = 149
@@ -1811,8 +1813,8 @@ object FormMain: TFormMain
         Top = 76
         Width = 90
         MaxValue = 2147483647
-        OnChange = ControlsUpdate
         TabOrder = 4
+        OnChange = ControlsUpdate
       end
       object btnGameSave: TButton
         Left = 117
@@ -1845,6 +1847,7 @@ object FormMain: TFormMain
     Top = 8
     object File1: TMenuItem
       Caption = 'File'
+      OnClick = File1Click
       object OpenMissionMenu: TMenuItem
         Caption = 'Start mission...'
         OnClick = Open_MissionMenuClick

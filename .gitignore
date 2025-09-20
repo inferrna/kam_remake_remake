@@ -102,3 +102,5 @@ Modding graphics/*.txt
 /Profiling/
 /KaM_Remake_exe_Results/
 KaM_Remake_exe.aqt
+KaM_Remake.lpi
+src/forms/*.lrs

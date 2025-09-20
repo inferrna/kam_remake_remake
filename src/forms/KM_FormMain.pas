@@ -289,7 +289,10 @@ type
     N15: TMenuItem;
     Openscriptfile1: TMenuItem;
 
+    procedure chkLogDeliveryChange(Sender: TObject);
     procedure chkShowTerrainIdsChange(Sender: TObject);
+    procedure cpLogsClick(Sender: TObject);
+    procedure File1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -300,6 +303,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    procedure mainGroupClick(Sender: TObject);
 
     procedure RenderAreaMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure RenderAreaMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
@@ -572,6 +576,21 @@ begin
 end;
 
 procedure TFormMain.chkShowTerrainIdsChange(Sender: TObject);
+begin
+
+end;
+
+procedure TFormMain.cpLogsClick(Sender: TObject);
+begin
+
+end;
+
+procedure TFormMain.File1Click(Sender: TObject);
+begin
+
+end;
+
+procedure TFormMain.chkLogDeliveryChange(Sender: TObject);
 begin
 
 end;
@@ -2248,6 +2267,11 @@ begin
   handled := False;
   gGameApp.MouseWheel(Shift, GetMouseWheelStepsCnt(WheelDelta), RenderArea.ScreenToClient(MousePos).X, RenderArea.ScreenToClient(MousePos).Y, handled);
 {$ENDIF}
+end;
+
+procedure TFormMain.mainGroupClick(Sender: TObject);
+begin
+
 end;
 
 

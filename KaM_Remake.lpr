@@ -398,6 +398,8 @@ uses
   {$ENDIF}
 {$ENDIF}
 
+{$R *.res}
+
 begin
   Application.Initialize;
   Application.Title := 'KaM Remake';

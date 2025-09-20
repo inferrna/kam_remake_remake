@@ -7,6 +7,9 @@ uses
   Forms, Controls, ComCtrls, ExtCtrls, StdCtrls, Graphics;
 
 type
+
+  { TFormLoading }
+
   TFormLoading = class(TForm)
     Label1: TLabel;
     Bar1: TProgressBar;
@@ -20,6 +23,8 @@ type
     Label2: TLabel;
     Label8: TLabel;
     procedure FormHide(Sender: TObject);
+    procedure Image1Click(Sender: TObject);
+    procedure Label3Click(Sender: TObject);
   public
     procedure LoadingStep;
     procedure LoadingText(const aData: UnicodeString);
@@ -40,6 +45,16 @@ begin
   //Then loading screen will be invisible, but prevents user interaction (block clicks etc)
   Left := -4000;
   Top := -4000;
+end;
+
+procedure TFormLoading.Image1Click(Sender: TObject);
+begin
+
+end;
+
+procedure TFormLoading.Label3Click(Sender: TObject);
+begin
+
 end;
 
 
