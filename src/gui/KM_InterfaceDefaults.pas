@@ -260,14 +260,14 @@ begin
   if Key = gResKeys[kfMusicVolumeUp] then
   begin
     gGameSettings.SFX.MusicVolume := gGameSettings.SFX.MusicVolume + 1 / OPT_SLIDER_MAX;
-    gMusic.SetVolume(gGameSettings.SFX.MusicVolume, 0);
+    gMusic.SetVolume(gGameSettings.SFX.MusicVolume);
     aHandled := True;
   end;
 
   if Key = gResKeys[kfMusicVolumeDown] then
   begin
     gGameSettings.SFX.MusicVolume := gGameSettings.SFX.MusicVolume - 1 / OPT_SLIDER_MAX;
-    gMusic.SetVolume(gGameSettings.SFX.MusicVolume, 0);
+    gMusic.SetVolume(gGameSettings.SFX.MusicVolume);
     aHandled := True;
   end;
 

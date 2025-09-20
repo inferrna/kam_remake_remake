@@ -82,7 +82,7 @@ type
     procedure ToggleShuffle(aEnableShuffle: Boolean);
     procedure Fade; overload;
     procedure Fade(aFadeTime: Integer); overload;
-    procedure SetVolume(aValue: Single; iStreamId: Integer);
+    procedure SetVolume(aValue: Single);
     function  GetVolume(iStreamId: Integer): Single;
     function  isFormatSupportedBySDL_mixer(const format: AnsiString): Boolean;
     procedure UnfadeStarting;
@@ -169,7 +169,7 @@ begin
     ForceDirectories(ExeDir + 'Music');
   ScanTracks(ExeDir + 'Music' + PathDelim);
 
-  SetVolume(aVolume, 0);
+  SetVolume(aVolume);
 
   // Initialise TrackOrder
   for I := 0 to fCount - 1 do
@@ -220,7 +220,11 @@ begin
   Stop;
   fIndex := tmpIndex;
 
-  if not FileExists(FileName) then Exit; //Make it silent
+  if not FileExists(FileName) then
+  begin
+      gLog.AddTime('Failed to load music'+filename+'! File not found');
+      Exit //Make it silent
+  end;
 
   {$IFDEF USELIBZPLAY}
   if not ZPlayers[iStreamId].OpenFile(AnsiString(FileName), sfAutodetect) then //Detect file type automatically
@@ -259,28 +263,29 @@ begin
   if errorCode <> BASS_OK then Exit; //Error
   {$ENDIF}
 
-  SetVolume(fVolume, iStreamId); //Need to reset music volume after starting playback
+  SetVolume(fVolume); //Need to reset music volume after starting playback
 end;
 
 
 {Update music gain (global volume for all sounds/music)}
-procedure TKMMusicLib.SetVolume(aValue: Single; iStreamId: Integer);
+procedure TKMMusicLib.SetVolume(aValue: Single);
 begin
   if not fIsInitialized then Exit; //Keep silent
   if not fEnabled then Exit;
-
+  gLog.AddTime('Set music volume to ' + FloatToStr(aValue));
   fVolume := aValue;
 
-  if fVolume > 0 then
+  if fVolume > 0.0001 then
     fPrevVolume := fVolume;
 
-  SetPlayerVolume(fVolume, iStreamId);
+  Mix_VolumeMusic(Round(fVolume * MIX_MAX_VOLUME));
 end;
 
 
 // Set player volume (game music volume stays unchanged)
 procedure TKMMusicLib.SetPlayerVolume(aValue: Single; iStreamId: Integer);
 begin
+  gLog.AddTime('Set stream '+IntToStr(iStreamId)+' volume to ' + FloatToStr(aValue));
   {$IFDEF USELIBZPLAY}
   ZPlayers[iStreamId].SetPlayerVolume(Round(aValue * 100), Round(aValue * 100)); //0=silent, 100=max
   {$ENDIF}
@@ -396,10 +401,8 @@ begin
   if fIndex = 0 then Exit; //It's already playing
   fIndex := 0;
   // There was audio crackling after loading screen, here we fix it by setting a delay and fading the volume.
-  prevVolume := fVolume;
-  fVolume := 0;
+
   PlayFile(fTracks[fTrackOrder[fIndex]], 0);
-  fVolume := prevVolume;
   UnfadeStarting;
 end;
 
@@ -495,11 +498,11 @@ begin
   if aMuted then
   begin
     fPrevVolume := fVolume;
-    SetVolume(0, 0);
+    SetVolume(0);
   end
   else
   begin
-    SetVolume(PrevVolume, 0);
+    SetVolume(fPrevVolume);
     fPrevVolume := 0;
   end;
 end;
