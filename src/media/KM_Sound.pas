@@ -497,6 +497,7 @@ var
   oggBuffer: PChar;
   {$ENDIF}
 begin
+  gLog.AddTime('About to play some sound');
   Result := -1;
   if not fIsSoundInitialized then Exit;
   if (aSoundID = sfxNone) and (aFile = '') then Exit;

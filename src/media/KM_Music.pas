@@ -19,7 +19,7 @@ interface
 {$ENDIF}
 
 uses
-  Types
+  Types, Classes
   {$IFDEF USEBASS}     , Bass {$ENDIF}
   {$IFDEF USESDL_MIXER}, SDL2, SDL2_mixer, strutils {$ENDIF}
   {$IFDEF USELIBZPLAY} , libZPlay {$ENDIF}
@@ -40,7 +40,7 @@ type
     fTrackOrder: TIntegerDynArray; //Each index points to an index of MusicTracks
     //MIDICount,MIDIIndex:integer;
     //MIDITracks: array[1..256]of string;
-    SDL2_supportedFormats: array[0..255] of PChar;
+    SDL2_supportedFormats: TStringList;
     fIsInitialized: Boolean;
     fEnabled: Boolean;
     fPrevVolume: Single; // Volume before mute
@@ -115,6 +115,7 @@ constructor TKMMusicLib.Create(aVolume: Single);
 var
   I: Integer;
   supMP3: Boolean;
+  format: PAnsiChar;
 begin
   inherited Create;
   fIsInitialized := True;
@@ -144,13 +145,18 @@ begin
     SDL_Quit();
   end;
 
+  SDL2_supportedFormats := TStringList.Create;
   for I := 0 to Mix_GetNumChunkDecoders() do
   begin
-    SDL2_supportedFormats[I] := Mix_GetChunkDecoder(i);
-    if AnsiContainsStr(SDL2_supportedFormats[I], 'MP3') then supMP3 := True;
-    gLog.AddTime('Found SDL2 audio decoder for '+Mix_GetChunkDecoder(i));
+    format := Mix_GetChunkDecoder(i);
+    if format <> nil then
+    begin
+      SDL2_supportedFormats.Add(format);
+      if AnsiContainsStr(format, 'MP3') then supMP3 := True;
+      gLog.AddTime('Found SDL2 audio decoder for '+format);
+    end;
   end;
-  if supMP3 then SDL2_supportedFormats[I] := 'MP2';
+  if supMP3 then SDL2_supportedFormats.Add('MP2');
 
   {$ENDIF}
 
@@ -320,17 +326,7 @@ end;
 function TKMMusicLib.isFormatSupportedBySDL_mixer(const format: AnsiString): Boolean;
 var I: Integer;
 begin
-  for I := 0 to Length(SDL2_supportedFormats) do
-  begin
-    gLog.AddTime('Try to find '+format+' in ' + SDL2_supportedFormats[I]);
-    if (SDL2_supportedFormats[I] = nil) or (SDL2_supportedFormats[I] = '') then
-      Break
-    else if AnsiContainsStr(AnsiString(SDL2_supportedFormats[I]), format) then
-    begin
-      Exit(True);
-    end;
-  end;
-  Result := False;
+  Result := SDL2_supportedFormats.IndexOf(format)>-1;
 end;
 
 procedure TKMMusicLib.ScanTracks(const aPath: UnicodeString);
