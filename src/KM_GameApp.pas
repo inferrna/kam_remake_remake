@@ -217,6 +217,7 @@ begin
     MessageDlg(gResTexts[TX_GAME_ERROR_OLD_OPENGL] + EolW + EolW + gResTexts[TX_GAME_ERROR_OLD_OPENGL_2], mtWarning, [mbOk], 0);
 
   gSoundPlayer  := TKMSoundPlayer.Create(gGameSettings.SFX.SoundFXVolume);
+  TSoundInitThread.Init(@gSoundPlayer);
   gMusic        := TKMMusicLib.Create(gGameSettings.SFX.MusicVolume);
   gSoundPlayer.OnRequestFade   := gMusic.Fade;
   gSoundPlayer.OnRequestUnfade := gMusic.Unfade;
