@@ -41,7 +41,7 @@
 unit openal;
 
 {$IFDEF FPC}
- // Added by bero
+ {$linklib libopenal}
  {$MODE Delphi}
  {$IFDEF CPUI386}
   {$DEFINE CPU386}
@@ -244,6 +244,313 @@ type
   PEaxBufferProperties = ^TEaxBufferProperties;
 
   //END EAX Extension
+
+//Renderer State management.
+procedure alEnable(capability: TALenum); cdecl; external callibname;
+procedure alDisable(capability: TALenum); cdecl; external callibname;
+function alIsEnabled(capability: TALenum): TALboolean; cdecl; external callibname;
+//Application preferences for driver performance choices.
+procedure alHint(target, mode: TALenum); cdecl; external callibname;
+
+//State retrieval.
+procedure alGetBooleanv(param: TALenum; data: PALboolean); cdecl; external callibname;
+procedure alGetIntegerv(param: TALenum; data: PALint); cdecl; external callibname;
+procedure alGetFloatv(param: TALenum; data: PALfloat); cdecl; external callibname;
+procedure alGetDoublev(param: TALenum; data: PALdouble); cdecl; external callibname;
+function alGetString(param: TALenum): PALubyte; cdecl; external callibname;
+
+//State retrieval.through return value ( for compatibility )
+function alGetBoolean(param: TALenum): TALboolean; cdecl; external callibname;
+function alGetInteger(param: TALenum): TALint; cdecl; external callibname;
+function alGetFloat(param: TALenum): TALfloat; cdecl; external callibname;
+function alGetDouble(param: TALenum): TALdouble; cdecl; external callibname;
+
+//ERROR support.
+
+//Obtain the most recent error generated in the AL state machine.
+function alGetError: TALenum; cdecl; external callibname;
+
+//EXTENSION support.
+
+//Obtain the address of a function (usually an extension)
+// with the name fname. All addresses are context-independent.
+function alIsExtensionPresent(fname: PAnsiChar): TALboolean; cdecl; external callibname;
+
+//Obtain the address of a function (usually an extension)
+//with the name fname. All addresses are context-independent.
+function alGetProcAddress(fname: PAnsiChar): Pointer; cdecl; external callibname;
+
+//Obtain the integer value of an enumeration (usually an extension) with the name ename.
+function alGetEnumValue(ename: PALuByte): TALenum; cdecl; external callibname;
+
+//LISTENER
+//Listener is the sample position for a given context.
+//The multi-channel (usually stereo) output stream generated
+//by the mixer is parametrized by this Listener object:
+//its position and velocity relative to Sources, within
+//occluder and reflector geometry.
+
+//Listener Gain:  default 1.0f.
+procedure alListenerf(param: TALenum; value: TALfloat); cdecl; external callibname;
+
+//Listener Position.
+//Listener Velocity.
+procedure alListener3f(param: TALenum; f1: TALfloat; f2: TALfloat; f3: TALfloat); cdecl; external callibname;
+
+//Listener Position:        array [0..2] of TALfloat
+//Listener Velocity:        array [0..2] of TALfloat
+//Listener Orientation:     array [0..5] of TALfloat  forward and up vector.
+procedure alListenerfv(param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//Listener Environment:  default 0.
+procedure alListeneri(param: TAlenum; value: TALint); cdecl; external callibname;
+procedure alListener3i(param: TALenum; value1: TALint; value2: TALint; value3: TALint ); cdecl; external callibname;
+procedure alListeneriv(param: TALenum; const values: PALint ); cdecl; external callibname;
+
+//TODO: verder ontbrekende functies toevoegen.
+
+//Retrieve listener information
+procedure alGetListeneriv(param: TALenum; values: PALint); cdecl; external callibname;
+procedure alGetListenerfv(param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//SOURCE
+//Source objects are by default localized. Sources
+//take the PCM data provided in the specified Buffer,
+//apply Source-specific modifications, and then
+//submit them to be mixed according to spatial
+//arrangement etc.
+
+//Create Source objects.
+procedure alGenSources(n: TALsizei; sources: PALuint); cdecl; external callibname;
+
+//Delete Source objects.
+procedure alDeleteSources(n: TALsizei; sources: PALuint); cdecl; external callibname;
+
+//Verify a handle is a valid Source.
+function alIsSource(id: TALuint): TALboolean; cdecl; external callibname;
+
+//Set an integer parameter for a Source object.
+procedure alSourcei(source: TALuint; param: TALenum; value: TALint); cdecl; external callibname;
+//Set an 3 integer parameter for a Source object.
+procedure alSource3i(source: TALuint; param: TALenum; v1: TALint; v2: TALint; v3: TALint); cdecl; external callibname;
+//Set an integer vector parameter for a Source object.
+procedure alSourceiv(source: TALuint; param: TALenum; values: PALint); cdecl; external callibname;
+
+//Set a float parameter for a Source object.
+procedure alSourcef(source: TALuint; param: TALenum; value: TALfloat); cdecl; external callibname;
+//Set a 3 float parameter for a Source object.
+procedure alSource3f(source: TALuint; param: TALenum; v1: TALfloat; v2: TALfloat; v3: TALfloat); cdecl; external callibname;
+//Set a float vector parameter for a Source object.
+procedure alSourcefv(source: TALuint; param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//Get an integer scalar parameter for a Source object.
+procedure alGetSourcei(source: TALuint; param: TALenum; value: PALint); cdecl; external callibname;
+//Get three integer scalar parameter for a Source object.
+procedure alGetSource3i(source: TALuint; param: TALenum; v1: PALint; v2: PALint; v3: PALint); cdecl; external callibname;
+//Get a integer vector parameter for a Source object.
+procedure alGetSourceiv(source: TALuint; param: TALenum; values: PALint); cdecl; external callibname;
+
+//Get a float scalar parameter for a Source object.
+procedure alGetSourcef(source: TALuint; param: TALenum; value: PALfloat); cdecl; external callibname;
+//Get three float scalar parameter for a Source object.
+procedure alGetSource3f(source: TALuint; param: TALenum; v1: PALfloat; v2: PALfloat; v3: PALfloat); cdecl; external callibname;
+//Get a float vector parameter for a Source object.
+procedure alGetSourcefv(source: TALuint; param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//Activate a source, start replay.
+procedure alSourcePlay(source: TALuint); cdecl; external callibname;
+
+//Pause a source,
+//temporarily remove it from the mixer list.
+procedure alSourcePause(source: TALuint); cdecl; external callibname;
+
+//Stop a source,
+//temporarily remove it from the mixer list,
+//and reset its internal state to pre-Play.
+//To remove a Source completely, it has to be
+//deleted following Stop, or before Play.
+procedure alSourceStop(source: TALuint); cdecl; external callibname;
+
+
+//Rewind a souce.  Stopped paused and playing sources,
+//resets the offset into the PCM data and sets state to
+//AL_INITIAL.
+procedure alSourceRewind(source: TALuint); cdecl; external callibname;
+
+//vector forms of those functions we all love
+procedure alSourcePlayv(n: TALsizei; sources: PALuint); cdecl; external callibname;
+procedure alSourceStopv(n: TALsizei; sources: PALuint); cdecl; external callibname;
+procedure alSourceRewindv(n: TALsizei; sources: PALuint); cdecl; external callibname;
+procedure alSourcePausev(n: TALsizei; sources: PALuint); cdecl; external callibname;
+
+  //Queue stuff
+procedure alSourceQueueBuffers(source: TALuint; n: TALsizei; buffers: PALuint); cdecl; external callibname;
+procedure alSourceUnqueueBuffers(source: TALuint; n: TALsizei; buffers: PALuint); cdecl; external callibname;
+
+//BUFFER
+//Buffer objects are storage space for sample data.
+//Buffers are referred to by Sources. There can be more than
+//one Source using the same Buffer data. If Buffers have
+//to be duplicated on a per-Source basis, the driver has to
+//take care of allocation, copying, and deallocation as well
+//as propagating buffer data changes.
+
+//Buffer object generation.
+procedure alGenBuffers(n: TALsizei; buffers: PALuint); cdecl; external callibname;
+procedure alDeleteBuffers(n: TALsizei; buffers: PALuint); cdecl; external callibname;
+function alIsBuffer(buffer: TALuint): TALboolean; cdecl; external callibname;
+//Specify the data to be filled into a buffer.
+procedure alBufferData(buffer: TALuint; format: TALenum; data: Pointer; size, freq: TALsizei); cdecl; external callibname;
+//set parameter for an buffer object
+procedure alBufferi(buffer: TALuint; param: TALenum; value: TALint); cdecl; external callibname;
+procedure alBuffer3i(buffer: TALuint; param: TALenum; v1: TALint; v2: TALint; v3: TALint); cdecl; external callibname;
+procedure alBufferiv(buffer: TALuint; param: TALenum; values: PALint); cdecl; external callibname;
+
+procedure alBufferf(buffer: TALuint; param: TALenum; value: TALfloat); cdecl; external callibname;
+procedure alBuffer3f(buffer: TALuint; param: TALenum; v1: TALfloat; v2: TALfloat; v3: TALfloat); cdecl; external callibname;
+procedure alBufferfv(buffer: TALuint; param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//read parameter for an buffer object
+procedure alGetBufferi(buffer: TALuint; param: TALenum; value: PALint); cdecl; external callibname;
+procedure alGetBuffer3i(buffer: TALuint; param: TALenum; v1: PALint; v2: PALint; v3: PALint); cdecl; external callibname;
+procedure alGetBufferiv(buffer: TALuint; param: TALenum; values: PALint); cdecl; external callibname;
+
+procedure alGetBufferf(buffer: TALuint; param: TALenum; value: PALfloat); cdecl; external callibname;
+procedure alGetBuffer3f(buffer: TALuint; param: TALenum; v1: PALfloat; v2: PALfloat; v3: PALfloat); cdecl; external callibname;
+procedure alGetBufferfv(buffer: TALuint; param: TALenum; values: PALfloat); cdecl; external callibname;
+
+//Global Parameters
+procedure alDistanceModel(value: TALenum); cdecl; external callibname;
+procedure alDopplerFactor(value: TALfloat); cdecl; external callibname;
+procedure alDopplerVelocity(value: TALfloat); cdecl; external callibname;
+procedure alSpeedOfSound( value: TALfloat ); cdecl; external callibname;
+
+//alc functions
+
+//Context Support
+function alcCreateContext(device: TALCdevice; attrlist: PALCint): TALCcontext; cdecl; external callibname;
+function alcMakeContextCurrent(context: TALCcontext): TALCenum; cdecl; external callibname;
+procedure alcProcessContext(context: TALCcontext); cdecl; external callibname;
+procedure alcSuspendContext(context: TALCcontext); cdecl; external callibname;
+procedure alcDestroyContext(context: TALCcontext); cdecl; external callibname;
+function alcGetCurrentContext: TALCcontext; cdecl; external callibname;
+function alcGetContextsDevice(context: TALCcontext): TALCdevice; cdecl; external callibname;
+
+//Device Management
+function alcOpenDevice(deviceName: PALCuByte): TALCdevice; cdecl; external callibname;
+procedure alcCloseDevice(device: TALCdevice); cdecl; external callibname;
+
+//Error Support
+//Obtain the most recent Context error
+function alcGetError(device: TALCdevice): TALCenum; cdecl; external callibname;
+
+//Extension support.
+//Query for the presence of an extension, and obtain any appropriate
+//function pointers and enum values.
+function alcIsExtensionPresent(device: TALCdevice; extName: PAnsiChar): TALCboolean; cdecl; external callibname;
+function alcGetProcAddress(device: TALCdevice; funcName: PALuByte): TALCvoid; cdecl; external callibname;
+function alcGetEnumValue(device: TALCdevice; enumName: PALuByte): TALCenum; cdecl; external callibname;
+
+//Query functions
+function alcGetString(device: TALCdevice; param: TALCenum): PAnsiChar; cdecl; external callibname;
+procedure alcGetIntegerv(device: TALCdevice; param: TALCenum; size: TALCsizei; data: PALCint); cdecl; external callibname;
+
+//Capture functions
+function alcCaptureOpenDevice( const devicename: PALCchar; frequency: TALCuint; format: TALCenum; buffersize: TALCsizei): PALCdevice; cdecl; external callibname;
+function alcCaptureCloseDevice( device: PALCdevice ): TALCboolean; cdecl; external callibname;
+procedure alcCaptureStart( device: PALCdevice ); cdecl; external callibname;
+procedure alcCaptureStop( device: PALCdevice ); cdecl; external callibname;
+procedure alcCaptureSamples( device: PALCdevice; buffer: TALCvoid; samples: TALCsizei ); cdecl; external callibname;
+
+//EAX functions
+function EAXSet(const Guid: TGUID; ALuint1: TALuint; ALuint2: TALuint; point: Pointer; ALuint3: TALuint): TALenum; cdecl; external callibname;
+function EAXGet(const Guid: TGUID; ALuint1: TALuint; ALuint2: TALuint; point: Pointer; ALuint3: TALuint): TALenum; cdecl; external callibname;
+  //X-RAM functions
+function EAXSetBufferMode(n: TALsizei;buffers: PALuint; value: TALint ): TALboolean; cdecl; external callibname;
+function EAXGetBufferMode(buffer: TALuint; value: PALint ): TALenum; cdecl; external callibname;
+
+//EFX functions
+
+//Effect object functions.
+
+//Create Effect objects.
+procedure ALGENEFFECTS( n: TALsizei; effects: PALuint ); cdecl; external callibname;
+
+//Delete Effect objects.
+procedure ALDELETEEFFECTS( n: TALsizei; effects: PALuint ); cdecl; external callibname;
+
+//Verify a handle is a valid Effect.
+function ALISEFFECT( eid: TALuint ): TALboolean; cdecl; external callibname;
+
+// Set an integer parameter for an Effect object.
+procedure ALEFFECTI( eid: TALuint; param: TALCenum; value: TALint); cdecl; external callibname;
+procedure ALEFFECTIV( eid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Set a floating point parameter for an Effect object.
+procedure ALEFFECTF( eid: TALuint; param: TALenum; value: TALfloat); cdecl; external callibname;
+procedure ALEFFECTFV( eid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
+
+// Get an integer parameter for an Effect object.
+procedure ALGETEFFECTI( eid: TALuint; param: TALenum; value: PALint ); cdecl; external callibname;
+procedure ALGETEFFECTIV( eid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Get a floating point parameter for an Effect object.
+procedure ALGETEFFECTF( eid: TALuint; param: TALenum; value: PALfloat ); cdecl; external callibname;
+procedure ALGETEFFECTFV( eid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
+
+//Filter object functions
+
+// Create Filter objects.
+procedure ALGENFILTERS( n: TALsizei; filters: PALuint ); cdecl; external callibname;
+
+// Delete Filter objects.
+procedure ALDELETEFILTERS( n: TALsizei; filters: PALuint ); cdecl; external callibname;
+
+// Verify a handle is a valid Filter.
+function ALISFILTER( fid: TALuint ): TALboolean; cdecl; external callibname;
+
+// Set an integer parameter for a Filter object.
+procedure ALFILTERI( fid: TALuint; param: TALenum; value: TALint ); cdecl; external callibname;
+procedure ALFILTERIV( fid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Set a floating point parameter for an Filter object.
+procedure ALFILTERF( fid: TALuint; param: TALenum; value: TALfloat); cdecl; external callibname;
+procedure ALFILTERFV( fid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
+
+// Get an integer parameter for a Filter object.
+procedure ALGETFILTERI( fid: TALuint; param: TALenum; value: PALint ); cdecl; external callibname;
+procedure ALGETFILTERIV( fid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Get a floating point parameter for a Filter object.
+procedure ALGETFILTERF( fid: TALuint; param: TALenum; value: PALfloat ); cdecl; external callibname;
+procedure ALGETFILTERFV( fid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
+
+// Auxiliary Slot object functions
+
+// Create Auxiliary Slot objects.
+procedure ALGENAUXILIARYEFFECTSLOTS( n: TALsizei; slots: PALuint ); cdecl; external callibname;
+
+// Delete Auxiliary Slot objects.
+procedure ALDELETEAUXILIARYEFFECTSLOTS( n: TALsizei; slots: PALuint ); cdecl; external callibname;
+
+// Verify a handle is a valid Auxiliary Slot.
+function ALISAUXILIARYEFFECTSLOT( slot: TALuint ): TALboolean; cdecl; external callibname;
+
+// Set an integer parameter for a Auxiliary Slot object.
+procedure ALAUXILIARYEFFECTSLOTI( asid: TALuint; param: TALenum; value: TALint ); cdecl; external callibname;
+procedure ALAUXILIARYEFFECTSLOTIV( asid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Set a floating point parameter for an Auxiliary Slot object.
+procedure ALAUXILIARYEFFECTSLOTF( asid: TALuint; param: TALenum; value: TALfloat ); cdecl; external callibname;
+procedure ALAUXILIARYEFFECTSLOTFV( asid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
+
+// Get an integer parameter for a Auxiliary Slot object.
+procedure ALGETAUXILIARYEFFECTSLOTI( asid: TALuint; param: TALenum; value: PALint ); cdecl; external callibname;
+procedure ALGETAUXILIARYEFFECTSLOTIV( asid: TALuint; param: TALenum; values: PALint ); cdecl; external callibname;
+
+// Get a floating point parameter for a Auxiliary Slot object.
+procedure ALGETAUXILIARYEFFECTSLOTF( asid: TALuint; param: TALenum; value: PALfloat ); cdecl; external callibname;
+procedure ALGETAUXILIARYEFFECTSLOTFV( asid: TALuint; param: TALenum; values: PALfloat ); cdecl; external callibname;
 
 const
   //bad value
@@ -1555,332 +1862,23 @@ var
   //Error Handling.
   //Extension Support.
 
-  //Renderer State management.
-  alEnable: procedure(capability: TALenum); cdecl;
-  alDisable: procedure(capability: TALenum); cdecl;
-  alIsEnabled: function(capability: TALenum): TALboolean; cdecl;
-
-  //Application preferences for driver performance choices.
-  alHint: procedure(target, mode: TALenum); cdecl;
-
-  //State retrieval.
-  alGetBooleanv: procedure(param: TALenum; data: PALboolean); cdecl;
-  alGetIntegerv: procedure(param: TALenum; data: PALint); cdecl;
-  alGetFloatv: procedure(param: TALenum; data: PALfloat); cdecl;
-  alGetDoublev: procedure(param: TALenum; data: PALdouble); cdecl;
-  alGetString: function(param: TALenum): PALubyte; cdecl;
-
-  //State retrieval.through return value ( for compatibility )
-  alGetBoolean: function(param: TALenum): TALboolean; cdecl;
-  alGetInteger: function(param: TALenum): TALint; cdecl;
-  alGetFloat: function(param: TALenum): TALfloat; cdecl;
-  alGetDouble: function(param: TALenum): TALdouble; cdecl;
-
-  //ERROR support.
-
-  //Obtain the most recent error generated in the AL state machine.
-  alGetError: function: TALenum; cdecl;
-
-  //EXTENSION support.
-
-  //Obtain the address of a function (usually an extension)
-  // with the name fname. All addresses are context-independent.
-  alIsExtensionPresent: function(fname: PAnsiChar): TALboolean; cdecl;
-
-  //Obtain the address of a function (usually an extension)
-  //with the name fname. All addresses are context-independent.
-  alGetProcAddress: function(fname: PAnsiChar): Pointer; cdecl;
-
-  //Obtain the integer value of an enumeration (usually an extension) with the name ename.
-  alGetEnumValue: function(ename: PALuByte): TALenum; cdecl;
-
-  //LISTENER
-  //Listener is the sample position for a given context.
-  //The multi-channel (usually stereo) output stream generated
-  //by the mixer is parametrized by this Listener object:
-  //its position and velocity relative to Sources, within
-  //occluder and reflector geometry.
-
-  //Listener Gain:  default 1.0f.
-  alListenerf: procedure(param: TALenum; value: TALfloat); cdecl;
-
-  //Listener Position.
-  //Listener Velocity.
-  alListener3f: procedure(param: TALenum; f1: TALfloat; f2: TALfloat; f3: TALfloat); cdecl;
-
-  //Listener Position:        array [0..2] of TALfloat
-  //Listener Velocity:        array [0..2] of TALfloat
-  //Listener Orientation:     array [0..5] of TALfloat  forward and up vector.
-  alListenerfv: procedure(param: TALenum; values: PALfloat); cdecl;
-
-  //Listener Environment:  default 0.
-  alListeneri: procedure(param: TAlenum; value: TALint); cdecl;
-
-  alListener3i: procedure(param: TALenum; value1: TALint; value2: TALint; value3: TALint );
-
-  alListeneriv: procedure(param: TALenum; const values: PALint );
-
-  //TODO: verder ontbrekende functies toevoegen.
-
-  //Retrieve listener information
-  alGetListeneriv: procedure(param: TALenum; values: PALint); cdecl;
-  alGetListenerfv: procedure(param: TALenum; values: PALfloat); cdecl;
-
-  //SOURCE
-  //Source objects are by default localized. Sources
-  //take the PCM data provided in the specified Buffer,
-  //apply Source-specific modifications, and then
-  //submit them to be mixed according to spatial
-  //arrangement etc.
-
-  //Create Source objects.
-  alGenSources: procedure(n: TALsizei; sources: PALuint); cdecl;
-
-  //Delete Source objects.
-  alDeleteSources: procedure(n: TALsizei; sources: PALuint); cdecl;
-
-  //Verify a handle is a valid Source.
-  alIsSource: function(id: TALuint): TALboolean; cdecl;
-
-  //Set an integer parameter for a Source object.
-  alSourcei: procedure(source: TALuint; param: TALenum; value: TALint); cdecl;
-  //Set an 3 integer parameter for a Source object.
-  alSource3i: procedure(source: TALuint; param: TALenum; v1: TALint; v2: TALint; v3: TALint); cdecl;
-  //Set an integer vector parameter for a Source object.
-  alSourceiv: procedure(source: TALuint; param: TALenum; values: PALint); cdecl;
-
-  //Set a float parameter for a Source object.
-  alSourcef: procedure(source: TALuint; param: TALenum; value: TALfloat); cdecl;
-  //Set a 3 float parameter for a Source object.
-  alSource3f: procedure(source: TALuint; param: TALenum; v1: TALfloat; v2: TALfloat; v3: TALfloat); cdecl;
-  //Set a float vector parameter for a Source object.
-  alSourcefv: procedure(source: TALuint; param: TALenum; values: PALfloat); cdecl;
-
-  //Get an integer scalar parameter for a Source object.
-  alGetSourcei: procedure(source: TALuint; param: TALenum; value: PALint); cdecl;
-  //Get three integer scalar parameter for a Source object.
-  alGetSource3i: procedure(source: TALuint; param: TALenum; v1: PALint; v2: PALint; v3: PALint); cdecl;
-  //Get a integer vector parameter for a Source object.
-  alGetSourceiv: procedure(source: TALuint; param: TALenum; values: PALint); cdecl;
-
-  //Get a float scalar parameter for a Source object.
-  alGetSourcef: procedure(source: TALuint; param: TALenum; value: PALfloat); cdecl;
-  //Get three float scalar parameter for a Source object.
-  alGetSource3f: procedure(source: TALuint; param: TALenum; v1: PALfloat; v2: PALfloat; v3: PALfloat); cdecl;
-  //Get a float vector parameter for a Source object.
-  alGetSourcefv: procedure(source: TALuint; param: TALenum; values: PALfloat); cdecl;
-
-  //Activate a source, start replay.
-  alSourcePlay: procedure(source: TALuint); cdecl;
-
-  //Pause a source,
-  //temporarily remove it from the mixer list.
-  alSourcePause: procedure(source: TALuint); cdecl;
-
-  //Stop a source,
-  //temporarily remove it from the mixer list,
-  //and reset its internal state to pre-Play.
-  //To remove a Source completely, it has to be
-  //deleted following Stop, or before Play.
-  alSourceStop: procedure(source: TALuint); cdecl;
-
-
-  //Rewind a souce.  Stopped paused and playing sources,
-  //resets the offset into the PCM data and sets state to
-  //AL_INITIAL.
-  alSourceRewind: procedure(source: TALuint); cdecl;
-
-  //vector forms of those functions we all love
-  alSourcePlayv: procedure(n: TALsizei; sources: PALuint); cdecl;
-  alSourceStopv: procedure(n: TALsizei; sources: PALuint); cdecl;
-  alSourceRewindv: procedure(n: TALsizei; sources: PALuint); cdecl;
-  alSourcePausev: procedure(n: TALsizei; sources: PALuint); cdecl;
-
-    //Queue stuff
-  alSourceQueueBuffers: procedure(source: TALuint; n: TALsizei; buffers: PALuint); cdecl;
-  alSourceUnqueueBuffers: procedure(source: TALuint; n: TALsizei; buffers: PALuint); cdecl;
-
-  //BUFFER
-  //Buffer objects are storage space for sample data.
-  //Buffers are referred to by Sources. There can be more than
-  //one Source using the same Buffer data. If Buffers have
-  //to be duplicated on a per-Source basis, the driver has to
-  //take care of allocation, copying, and deallocation as well
-  //as propagating buffer data changes.
-
-  //Buffer object generation.
-  alGenBuffers: procedure(n: TALsizei; buffers: PALuint); cdecl;
-  alDeleteBuffers: procedure(n: TALsizei; buffers: PALuint); cdecl;
-  alIsBuffer: function(buffer: TALuint): TALboolean; cdecl;
-  //Specify the data to be filled into a buffer.
-  alBufferData: procedure(buffer: TALuint; format: TALenum; data: Pointer; size, freq: TALsizei); cdecl;
-  //set parameter for an buffer object
-  alBufferi: procedure(buffer: TALuint; param: TALenum; value: TALint); cdecl;
-  alBuffer3i: procedure(buffer: TALuint; param: TALenum; v1: TALint; v2: TALint; v3: TALint); cdecl;
-  alBufferiv: procedure(buffer: TALuint; param: TALenum; values: PALint); cdecl;
-
-  alBufferf: procedure(buffer: TALuint; param: TALenum; value: TALfloat); cdecl;
-  alBuffer3f: procedure(buffer: TALuint; param: TALenum; v1: TALfloat; v2: TALfloat; v3: TALfloat); cdecl;
-  alBufferfv: procedure(buffer: TALuint; param: TALenum; values: PALfloat); cdecl;
-
-  //read parameter for an buffer object
-  alGetBufferi: procedure(buffer: TALuint; param: TALenum; value: PALint); cdecl;
-  alGetBuffer3i: procedure(buffer: TALuint; param: TALenum; v1: PALint; v2: PALint; v3: PALint); cdecl;
-  alGetBufferiv: procedure(buffer: TALuint; param: TALenum; values: PALint); cdecl;
-
-  alGetBufferf: procedure(buffer: TALuint; param: TALenum; value: PALfloat); cdecl;
-  alGetBuffer3f: procedure(buffer: TALuint; param: TALenum; v1: PALfloat; v2: PALfloat; v3: PALfloat); cdecl;
-  alGetBufferfv: procedure(buffer: TALuint; param: TALenum; values: PALfloat); cdecl;
-
-  //Global Parameters
-  alDistanceModel: procedure(value: TALenum); cdecl;
-  alDopplerFactor: procedure(value: TALfloat); cdecl;
-  alDopplerVelocity: procedure(value: TALfloat); cdecl;
-  alSpeedOfSound: procedure( value: TALfloat ); cdecl;
-
-  //alc functions
-
-  //Context Support
-  alcCreateContext: function(device: TALCdevice; attrlist: PALCint): TALCcontext; cdecl;
-  alcMakeContextCurrent: function(context: TALCcontext): TALCenum; cdecl;
-  alcProcessContext: procedure(context: TALCcontext); cdecl;
-  alcSuspendContext: procedure(context: TALCcontext); cdecl;
-  alcDestroyContext: procedure(context: TALCcontext); cdecl;
-  alcGetCurrentContext: function: TALCcontext; cdecl;
-  alcGetContextsDevice: function(context: TALCcontext): TALCdevice; cdecl;
-
-  //Device Management
-  alcOpenDevice: function(deviceName: PALCuByte): TALCdevice; cdecl;
-  alcCloseDevice: procedure(device: TALCdevice); cdecl;
-
-  //Error Support
-  //Obtain the most recent Context error
-  alcGetError: function(device: TALCdevice): TALCenum; cdecl;
-
-  //Extension support.
-  //Query for the presence of an extension, and obtain any appropriate
-  //function pointers and enum values.
-  alcIsExtensionPresent: function(device: TALCdevice; extName: PAnsiChar): TALCboolean; cdecl;
-  alcGetProcAddress: function(device: TALCdevice; funcName: PALuByte): TALCvoid; cdecl;
-  alcGetEnumValue: function(device: TALCdevice; enumName: PALuByte): TALCenum; cdecl;
-
-  //Query functions
-  alcGetString: function(device: TALCdevice; param: TALCenum): PAnsiChar; cdecl;
-  alcGetIntegerv: procedure(device: TALCdevice; param: TALCenum; size: TALCsizei; data: PALCint); cdecl;
-
-  //Capture functions
-  alcCaptureOpenDevice: function( const devicename: PALCchar; frequency: TALCuint; format: TALCenum; buffersize: TALCsizei): PALCdevice; cdecl;
-  alcCaptureCloseDevice: function( device: PALCdevice ): TALCboolean; cdecl;
-  alcCaptureStart: procedure( device: PALCdevice ); cdecl;
-  alcCaptureStop: procedure( device: PALCdevice ); cdecl;
-  alcCaptureSamples: procedure( device: PALCdevice; buffer: TALCvoid; samples: TALCsizei ); cdecl;
-
-  //EAX functions
-  EAXSet: Function(const Guid: TGUID; ALuint1: TALuint; ALuint2: TALuint; point: Pointer; ALuint3: TALuint): TALenum; cdecl;
-  EAXGet: Function(const Guid: TGUID; ALuint1: TALuint; ALuint2: TALuint; point: Pointer; ALuint3: TALuint): TALenum; cdecl;
-
   //X-RAM enums
   AL_EAX_RAM_SIZE: TALEnum;
   AL_EAX_RAM_FREE: TALEnum;
   AL_STORAGE_AUTOMATIC: TALEnum;
   AL_STORAGE_HARDWARE: TALEnum;
   AL_STORAGE_ACCESSIBLE: TALEnum;
-  //X-RAM functions
-  EAXSetBufferMode: function(n: TALsizei;buffers: PALuint; value: TALint ): TALboolean; cdecl;
-  EAXGetBufferMode: function(buffer: TALuint; value: PALint ): TALenum; cdecl;
 
-  //EFX functions
-
-  //Effect object functions.
-
-  //Create Effect objects.
-  ALGENEFFECTS: procedure( n: TALsizei; effects: PALuint ); cdecl;
-
-  //Delete Effect objects.
-  ALDELETEEFFECTS: procedure( n: TALsizei; effects: PALuint ); cdecl;
-
-  //Verify a handle is a valid Effect.
-  ALISEFFECT: function( eid: TALuint ): TALboolean; cdecl;
-
-  // Set an integer parameter for an Effect object.
-  ALEFFECTI: procedure( eid: TALuint; param: TALCenum; value: TALint); cdecl;
-  ALEFFECTIV: procedure( eid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Set a floating point parameter for an Effect object.
-  ALEFFECTF: procedure( eid: TALuint; param: TALenum; value: TALfloat); cdecl;
-  ALEFFECTFV: procedure( eid: TALuint; param: TALenum; values: PALfloat ); cdecl;
-
-  // Get an integer parameter for an Effect object.
-  ALGETEFFECTI: procedure( eid: TALuint; param: TALenum; value: PALint ); cdecl;
-  ALGETEFFECTIV: procedure( eid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Get a floating point parameter for an Effect object.
-  ALGETEFFECTF: procedure( eid: TALuint; param: TALenum; value: PALfloat ); cdecl;
-  ALGETEFFECTFV: procedure( eid: TALuint; param: TALenum; values: PALfloat ); cdecl;
-
-  //Filter object functions
-
-  // Create Filter objects.
-  ALGENFILTERS: procedure( n: TALsizei; filters: PALuint ); cdecl;
-
-  // Delete Filter objects.
-  ALDELETEFILTERS: procedure( n: TALsizei; filters: PALuint ); cdecl;
-
-  // Verify a handle is a valid Filter.
-  ALISFILTER: function( fid: TALuint ): TALboolean; cdecl;
-
-  // Set an integer parameter for a Filter object.
-  ALFILTERI: procedure( fid: TALuint; param: TALenum; value: TALint ); cdecl;
-  ALFILTERIV: procedure( fid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Set a floating point parameter for an Filter object.
-  ALFILTERF: procedure( fid: TALuint; param: TALenum; value: TALfloat); cdecl;
-  ALFILTERFV: procedure( fid: TALuint; param: TALenum; values: PALfloat ); cdecl;
-
-  // Get an integer parameter for a Filter object.
-  ALGETFILTERI: procedure( fid: TALuint; param: TALenum; value: PALint ); cdecl;
-  ALGETFILTERIV: procedure( fid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Get a floating point parameter for a Filter object.
-  ALGETFILTERF: procedure( fid: TALuint; param: TALenum; value: PALfloat ); cdecl;
-  ALGETFILTERFV: procedure( fid: TALuint; param: TALenum; values: PALfloat ); cdecl;
-
-  // Auxiliary Slot object functions
-
-  // Create Auxiliary Slot objects.
-  ALGENAUXILIARYEFFECTSLOTS: procedure( n: TALsizei; slots: PALuint ); cdecl;
-
-  // Delete Auxiliary Slot objects.
-  ALDELETEAUXILIARYEFFECTSLOTS: procedure( n: TALsizei; slots: PALuint ); cdecl;
-
-  // Verify a handle is a valid Auxiliary Slot.
-  ALISAUXILIARYEFFECTSLOT: function( slot: TALuint ): TALboolean; cdecl;
-
-  // Set an integer parameter for a Auxiliary Slot object.
-  ALAUXILIARYEFFECTSLOTI: procedure( asid: TALuint; param: TALenum; value: TALint ); cdecl;
-  ALAUXILIARYEFFECTSLOTIV: procedure( asid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Set a floating point parameter for an Auxiliary Slot object.
-  ALAUXILIARYEFFECTSLOTF: procedure( asid: TALuint; param: TALenum; value: TALfloat ); cdecl;
-  ALAUXILIARYEFFECTSLOTFV: procedure( asid: TALuint; param: TALenum; values: PALfloat ); cdecl;
-
-  // Get an integer parameter for a Auxiliary Slot object.
-  ALGETAUXILIARYEFFECTSLOTI: procedure( asid: TALuint; param: TALenum; value: PALint ); cdecl;
-  ALGETAUXILIARYEFFECTSLOTIV: procedure( asid: TALuint; param: TALenum; values: PALint ); cdecl;
-
-  // Get a floating point parameter for a Auxiliary Slot object.
-  ALGETAUXILIARYEFFECTSLOTF: procedure( asid: TALuint; param: TALenum; value: PALfloat ); cdecl;
-  ALGETAUXILIARYEFFECTSLOTFV: procedure( asid: TALuint; param: TALenum; values: PALfloat ); cdecl;
 
 
 {$IFDEF ALUT}
   //External Alut functions (from dll or so)
-  alutInit: procedure(argc: PALint; argv: array of PALbyte); cdecl;
-  alutExit: procedure; cdecl;
+  procedure alutInit(argc: PALint; argv: array of PALbyte); cdecl; external callibname;
+  procedure alutExit; cdecl; external callibname;
 
-  alutLoadWAVFile: procedure(fname: string; var format: TALenum; var data: TALvoid; var size: TALsizei; var freq: TALsizei; var loop: TALint); cdecl;
-  alutLoadWAVMemory: procedure(memory: PALbyte; var format: TALenum; var data: TALvoid; var size: TALsizei; var freq: TALsizei; var loop: TALint); cdecl;
-  alutUnloadWAV: procedure(format: TALenum; data: TALvoid; size: TALsizei; freq: TALsizei); cdecl;
+  procedure alutLoadWAVFile(fname: string; var format: TALenum; var data: TALvoid; var size: TALsizei; var freq: TALsizei; var loop: TALint); cdecl; external callibname;
+  procedure alutLoadWAVMemory(memory: PALbyte; var format: TALenum; var data: TALvoid; var size: TALsizei; var freq: TALsizei; var loop: TALint); cdecl; external callibname;
+  procedure alutUnloadWAV(format: TALenum; data: TALvoid; size: TALsizei; freq: TALsizei); cdecl; external callibname;
 {$ELSE}
   //Internal Alut functions
   procedure alutInit(argc: PALint; argv: array of PALbyte);
@@ -1941,7 +1939,7 @@ const
   RTLD_BINDING_MASK = $003;
   LibraryLib        = {$IFDEF Linux}'dl'{$ELSE}'c'{$ENDIF};
 
-function LoadLibraryEx(Name : PChar; Flags : LongInt) : Pointer; cdecl; external LibraryLib name 'dlopen';
+function LoadLibraryEx(Name : PChar; Flags : LongInt) : Pointer; cdecl;  external LibraryLib name 'dlopen';
 function GetProcAddressEx(Lib : Pointer; Name : PChar) : Pointer; cdecl; external LibraryLib name 'dlsym';
 function FreeLibraryEx(Lib : Pointer) : LongInt; cdecl; external LibraryLib name 'dlclose';
 
@@ -1983,8 +1981,6 @@ function InitOpenAL(LibName: String): Boolean;
 {$ENDIF}
 begin
   Result       := False;
-  if LibHandle<>0 then FreeLibrary(LibHandle);
-  LibHandle    := LoadLibrary(PChar(LibName));
 {$IFDEF ALUT}
   if AlutLibHandle<>0 then FreeLibrary(AlutLibHandle);
   AlutLibHandle    := LoadLibrary(PChar(AlutLibName));
@@ -1999,119 +1995,8 @@ begin
   end;
 {$ENDIF}
 
-  alGetProcAddress := GetProcAddress(LibHandle, 'alGetProcAddress'  );
 
-  if (LibHandle <> 0) then
-  begin
-
-    alEnable:= alProcedure('alEnable');
-    alDisable:= alProcedure('alDisable');
-    alIsEnabled:= alProcedure('alIsEnabled');
-    alHint:= alProcedure('alHint');
-    alGetBooleanv:= alProcedure('alGetBooleanv');
-    alGetIntegerv:= alProcedure('alGetIntegerv');
-    alGetFloatv:= alProcedure('alGetFloatv');
-    alGetDoublev:= alProcedure('alGetDoublev');
-    alGetString:= alProcedure('alGetString');
-    alGetBoolean:= alProcedure('alGetBoolean');
-    alGetInteger:= alProcedure('alGetInteger');
-    alGetFloat:= alProcedure('alGetFloat');
-    alGetDouble:= alProcedure('alGetDouble');
-    alGetError:= alProcedure('alGetError');
-    alIsExtensionPresent:= alProcedure('alIsExtensionPresent');
-    alGetEnumValue:= alProcedure('alGetEnumValue');
-
-    alListenerf:= alProcedure('alListenerf');
-    alListener3f:= alProcedure('alListener3f');
-    alListenerfv:= alProcedure('alListenerfv');
-
-    alListeneri:= alProcedure('alListeneri');
-    alListener3i:= alProcedure('alListener3i');
-    alListeneriv:= alProcedure('alListeneriv');
-
-    alGetListeneriv:= alProcedure('alGetListeneriv');
-    alGetListenerfv:= alProcedure('alGetListenerfv');
-
-    alGenSources:= alProcedure('alGenSources');
-    alDeleteSources:= alProcedure('alDeleteSources');
-    alIsSource:= alProcedure('alIsSource');
-
-    alSourcei:= alProcedure('alSourcei');
-    alSource3i:= alProcedure('alSource3i');
-    alSourceiv:= alProcedure('alSourceiv');
-
-    alSourcef:= alProcedure('alSourcef');
-    alSource3f:= alProcedure('alSource3f');
-    alSourcefv:= alProcedure('alSourcefv');
-
-    alGetSourcei:= alProcedure('alGetSourcei');
-    alGetSource3i:= alProcedure('alGetSource3i');
-    alGetSourceiv:= alProcedure('alGetSourceiv');
-
-    alGetSourcef:= alProcedure('alGetSourcef');
-    alGetSource3f:= alProcedure('alGetSource3f');
-    alGetSourcefv:= alProcedure('alGetSourcefv');
-
-    alSourcePlay:= alProcedure('alSourcePlay');
-    alSourcePause:=alProcedure('alSourcePause');
-    alSourceStop:= alProcedure('alSourceStop');
-    alSourceRewind:= alProcedure('alSourceRewind');
-    alSourcePlayv:= alProcedure('alSourcePlayv');
-    alSourceStopv:= alProcedure('alSourceStopv');
-    alSourceRewindv:= alProcedure('alSourceRewindv');
-    alSourcePausev:= alProcedure('alSourcePausev');
-    alGenBuffers:= alProcedure('alGenBuffers');
-    alDeleteBuffers:= alProcedure('alDeleteBuffers');
-    alIsBuffer:= alProcedure('alIsBuffer');
-    alBufferData:= alProcedure('alBufferData');
-
-    alBufferi:= alProcedure('alBufferi');
-    alBuffer3i:= alProcedure('alBuffer3i');
-    alBufferiv:= alProcedure('alBufferiv');
-
-    alBufferf:= alProcedure('alBufferf');
-    alBuffer3f:= alProcedure('alBuffer3f');
-    alBufferfv:= alProcedure('alBufferfv');
-
-    alGetBufferi:= alProcedure('alGetBufferi');
-    alGetBuffer3i:= alProcedure('alGetBuffer3i');
-    alGetBufferiv:= alProcedure('alGetBufferiv');
-
-    alGetBufferf:= alProcedure('alGetBufferf');
-    alGetBuffer3f:= alProcedure('alGetBuffer3f');
-    alGetBufferfv:= alProcedure('alGetBufferfv');
-
-    alSourceQueueBuffers:= alProcedure('alSourceQueueBuffers');
-    alSourceUnqueueBuffers:= alProcedure('alSourceUnqueueBuffers');
-    alDistanceModel:= alProcedure('alDistanceModel');
-    alDopplerFactor:= alProcedure('alDopplerFactor');
-    alDopplerVelocity:= alProcedure('alDopplerVelocity');
-    alSpeedOfSound := alProcedure('alSpeedOfSound');
-
-    alcCreateContext:= alProcedure('alcCreateContext');
-    alcMakeContextCurrent:= alProcedure('alcMakeContextCurrent');
-    alcProcessContext:= alProcedure('alcProcessContext');
-    alcSuspendContext:= alProcedure('alcSuspendContext');
-    alcDestroyContext:= alProcedure('alcDestroyContext');
-    alcGetError:= alProcedure('alcGetError');
-    alcGetCurrentContext:= alProcedure('alcGetCurrentContext');
-    alcOpenDevice:= alProcedure('alcOpenDevice');
-    alcCloseDevice:= alProcedure('alcCloseDevice');
-    alcIsExtensionPresent:= alProcedure('alcIsExtensionPresent');
-    alcGetProcAddress:= alProcedure('alcGetProcAddress');
-    alcGetEnumValue:= alProcedure('alcGetEnumValue');
-    alcGetContextsDevice:= alProcedure('alcGetContextsDevice');
-    alcGetString:= alProcedure('alcGetString');
-    alcGetIntegerv:= alProcedure('alcGetIntegerv');
-
-    alcCaptureOpenDevice:= alProcedure('alcCaptureOpenDevice');
-    alcCaptureCloseDevice:= alProcedure('alcCaptureCloseDevice');
-    alcCaptureStart:= alProcedure('alcCaptureStart');
-    alcCaptureStop:= alProcedure('alcCaptureStop');
-    alcCaptureSamples:= alProcedure('alcCaptureSamples');
-
-    Result:=True;
-  end;
+  Result:=True;
 end;
 
 procedure ReadOpenALExtensions;
@@ -2121,14 +2006,14 @@ begin
       //EAX Extensions
       if alIsExtensionPresent('EAX2.0') then
       begin
-        EAXSet := alProcedure('EAXSet');
-        EAXGet := alProcedure('EAXGet');
+        //EAXSet := alProcedure('EAXSet');
+        //EAXGet := alProcedure('EAXGet');
       end;
       //EAX-RAM Extension
       if alIsExtensionPresent('EAX-RAM') then
       begin
-        EAXSetBufferMode := alGetProcAddress('EAXSetBufferMode');
-    		EAXGetBufferMode := alGetProcAddress('EAXGetBufferMode');
+     //   EAXSetBufferMode := alGetProcAddress('EAXSetBufferMode');
+    	//EAXGetBufferMode := alGetProcAddress('EAXGetBufferMode');
         AL_EAX_RAM_SIZE := alGetEnumValue('AL_EAX_RAM_SIZE');
         AL_EAX_RAM_FREE := alGetEnumValue('AL_EAX_RAM_FREE');
         AL_STORAGE_AUTOMATIC := alGetEnumValue('AL_STORAGE_AUTOMATIC');
@@ -2137,39 +2022,39 @@ begin
       end;
       if alcIsExtensionPresent(alcGetContextsDevice(alcGetCurrentContext()), ALC_EXT_EFX_NAME) then
       begin
-        alGenEffects := alGetProcAddress('alGenEffects');
-		    alDeleteEffects := alGetProcAddress('alDeleteEffects');
-		    alIsEffect := alGetProcAddress('alIsEffect');
-		    alEffecti := alGetProcAddress('alEffecti');
-		    alEffectiv := alGetProcAddress('alEffectiv');
-		    alEffectf := alGetProcAddress('alEffectf');
-		    alEffectfv := alGetProcAddress('alEffectfv');
-		    alGetEffecti := alGetProcAddress('alGetEffecti');
-		    alGetEffectiv := alGetProcAddress('alGetEffectiv');
-		    alGetEffectf := alGetProcAddress('alGetEffectf');
-        alGetEffectfv := alGetProcAddress('alGetEffectfv');
-        alGenFilters := alGetProcAddress('alGenFilters');
-		    alDeleteFilters := alGetProcAddress('alDeleteFilters');
-		    alIsFilter := alGetProcAddress('alIsFilter');
-		    alFilteri := alGetProcAddress('alFilteri');
-		    alFilteriv := alGetProcAddress('alFilteriv');
-		    alFilterf := alGetProcAddress('alFilterf');
-		    alFilterfv := alGetProcAddress('alFilterfv');
-		    alGetFilteri := alGetProcAddress('alGetFilteri');
-		    alGetFilteriv := alGetProcAddress('alGetFilteriv');
-		    alGetFilterf := alGetProcAddress('alGetFilterf');
-		    alGetFilterfv := alGetProcAddress('alGetFilterfv');
-		    alGenAuxiliaryEffectSlots := alGetProcAddress('alGenAuxiliaryEffectSlots');
-		    alDeleteAuxiliaryEffectSlots := alGetProcAddress('alDeleteAuxiliaryEffectSlots');
-		    alIsAuxiliaryEffectSlot := alGetProcAddress('alIsAuxiliaryEffectSlot');
-		    alAuxiliaryEffectSloti := alGetProcAddress('alAuxiliaryEffectSloti');
-		    alAuxiliaryEffectSlotiv := alGetProcAddress('alAuxiliaryEffectSlotiv');
-        alAuxiliaryEffectSlotf := alGetProcAddress('alAuxiliaryEffectSlotf');
-		    alAuxiliaryEffectSlotfv := alGetProcAddress('alAuxiliaryEffectSlotfv');
-		    alGetAuxiliaryEffectSloti := alGetProcAddress('alGetAuxiliaryEffectSloti');
-		    alGetAuxiliaryEffectSlotiv := alGetProcAddress('alGetAuxiliaryEffectSlotiv');
-		    alGetAuxiliaryEffectSlotf := alGetProcAddress('alGetAuxiliaryEffectSlotf');
-		    alGetAuxiliaryEffectSlotfv := alGetProcAddress('alGetAuxiliaryEffectSlotfv');
+        //alGenEffects := alGetProcAddress('alGenEffects');
+	//alDeleteEffects := alGetProcAddress('alDeleteEffects');
+	//alIsEffect := alGetProcAddress('alIsEffect');
+	//alEffecti := alGetProcAddress('alEffecti');
+	//alEffectiv := alGetProcAddress('alEffectiv');
+	//alEffectf := alGetProcAddress('alEffectf');
+	//alEffectfv := alGetProcAddress('alEffectfv');
+	//alGetEffecti := alGetProcAddress('alGetEffecti');
+	//alGetEffectiv := alGetProcAddress('alGetEffectiv');
+	//alGetEffectf := alGetProcAddress('alGetEffectf');
+        //alGetEffectfv := alGetProcAddress('alGetEffectfv');
+        //alGenFilters := alGetProcAddress('alGenFilters');
+	//alDeleteFilters := alGetProcAddress('alDeleteFilters');
+	//alIsFilter := alGetProcAddress('alIsFilter');
+	//alFilteri := alGetProcAddress('alFilteri');
+	//alFilteriv := alGetProcAddress('alFilteriv');
+	//alFilterf := alGetProcAddress('alFilterf');
+	//alFilterfv := alGetProcAddress('alFilterfv');
+	//alGetFilteri := alGetProcAddress('alGetFilteri');
+	//alGetFilteriv := alGetProcAddress('alGetFilteriv');
+	//alGetFilterf := alGetProcAddress('alGetFilterf');
+	//alGetFilterfv := alGetProcAddress('alGetFilterfv');
+	//alGenAuxiliaryEffectSlots := alGetProcAddress('alGenAuxiliaryEffectSlots');
+	//alDeleteAuxiliaryEffectSlots := alGetProcAddress('alDeleteAuxiliaryEffectSlots');
+	//alIsAuxiliaryEffectSlot := alGetProcAddress('alIsAuxiliaryEffectSlot');
+	//alAuxiliaryEffectSloti := alGetProcAddress('alAuxiliaryEffectSloti');
+	//alAuxiliaryEffectSlotiv := alGetProcAddress('alAuxiliaryEffectSlotiv');
+        //alAuxiliaryEffectSlotf := alGetProcAddress('alAuxiliaryEffectSlotf');
+	//alAuxiliaryEffectSlotfv := alGetProcAddress('alAuxiliaryEffectSlotfv');
+	//alGetAuxiliaryEffectSloti := alGetProcAddress('alGetAuxiliaryEffectSloti');
+	//alGetAuxiliaryEffectSlotiv := alGetProcAddress('alGetAuxiliaryEffectSlotiv');
+	//alGetAuxiliaryEffectSlotf := alGetProcAddress('alGetAuxiliaryEffectSlotf');
+	//alGetAuxiliaryEffectSlotfv := alGetProcAddress('alGetAuxiliaryEffectSlotfv');
       end;
     end;
 end;
