@@ -22,8 +22,8 @@ const
   FPS_INTERVAL          = 1000;         //Time in ms between FPS measurements, bigger value = more accurate result
   MENU_DESIGN_X         = 1024;         //Thats the size menu was designed for. All elements are placed in this size
   MENU_DESIGN_Y         = 768;          //Thats the size menu was designed for. All elements are placed in this size
-  MIN_RESOLUTION_WIDTH  = 1024;         //Lowest supported resolution X
-  MIN_RESOLUTION_HEIGHT = 720;          //Lowest supported resolution Y
+  MIN_RESOLUTION_WIDTH  = 1366;         //Lowest supported resolution X
+  MIN_RESOLUTION_HEIGHT = 960;          //Lowest supported resolution Y
 
   // It would be nice to have the declaration as:
   // GAME_REVISION_NUM = {$I KM_Revision.inc}
