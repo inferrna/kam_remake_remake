@@ -162,7 +162,7 @@ begin
     nWindow.Attributes['FixedPosition'] := fWindowParams.FixedPosition;
 
   // Misc
-  nMisc := nMainSettings.AddOrFindChild('Misc');
+    nMisc := nMainSettings.AddOrFindChild('Misc');
     nMisc.Attributes['NoRenderMaxTime'] := fNoRenderMaxTime;
 
 end;

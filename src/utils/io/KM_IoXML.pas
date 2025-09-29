@@ -228,10 +228,12 @@ end;
 
 { TKMXmlNode }
 function TKMXmlNode.AddChild(const Name: String): TKMXmlNode;
+{$IFNDEF USE_SIMPLE_XML}
 var
   tel: TDOMNode;
   Ptr: ^TKMXmlNode;
   txml: TKMXmlNode;
+{$ENDIF}
 begin
   {$IFDEF USE_SIMPLE_XML}
   Result := TKMXmlNode(inherited AddChild(Name));
@@ -245,11 +247,20 @@ end;
 
 
 function TKMXmlNode.FindNode(const Name: String): TKMXmlNode;
+{$IFNDEF USE_SIMPLE_XML}
+var
+  tel: TDOMNode;
+  Ptr: ^TKMXmlNode;
+  txml: TKMXmlNode;
+{$ENDIF}
 begin
   {$IFDEF USE_SIMPLE_XML}
   Result := TKMXmlNode(ChildNodes.Find(Name));
   {$ELSE}
-  Result := TKMXmlNode(FOwnerDocument.FindNode(Name));
+  tel := inherited FindNode(Name);
+  Ptr := @tel;
+  txml := Ptr^;
+  Result := TKMXmlNode(txml);
   {$ENDIF}
 end;
 
@@ -257,9 +268,19 @@ end;
 function TKMXmlNode.AddOrFindChild(const aChildNodeName: string): TKMXmlNode;
 begin
   if not HasChild(aChildNodeName) then
-    Result := AddChild(aChildNodeName)
+  begin
+    Result := AddChild(aChildNodeName);
+    {$IFDEF DEBUG}
+    Assert(Result <> nil, 'Added nil for '+aChildNodeName);
+   {$ENDIF}
+  end
   else
+  begin
     Result := FindNode(aChildNodeName);
+    {$IFDEF DEBUG}
+    Assert(Result <> nil, 'Found nil for '+aChildNodeName);
+    {$ENDIF}
+  end;
 end;
 
 
@@ -279,22 +300,23 @@ begin
   {$IFDEF USE_SIMPLE_XML}
   Result := inherited HasChild(Name);
   {$ELSE}
-  if ChildNodes <> nil then
-    Result := False;
+  Result := False;
   for i := 0 to ChildsCount-1 do
   begin
     {$IFDEF DEBUG}
-    gLog.AddTime('Try node ' + IntToStr(i) + ' of ' + IntToStr(ChildsCount));
     Assert(ChildNodes[i] <> nil, 'Node '+IntToStr(i)+' is nil');
     {$ENDIF}
-    if ChildNodes[i].NodeName = Name then
-      Result := True
-    {$IFDEF DEBUG}
-    else
-      gLog.AddTime(ChildNodes[i].NodeName + ' is not equal ' + Name);
-    {$ENDIF}
+    Result := ChildNodes[i].NodeName = Name;
+    if Result then
+    begin
+      gLog.AddTime('Found ' + Name);
+      Break;
+    end;
+    //{$IFDEF DEBUG}
+    //else
+    //  gLog.AddTime(IntToStr(i)+' '+ChildNodes[i].NodeName + ' is not equal ' + Name);
+    //{$ENDIF}
   end;
-  Result := False;
   {$ENDIF}
 end;
 
@@ -319,6 +341,9 @@ begin
   {$IFDEF USE_SIMPLE_XML}
   inherited SetAttr(AttrName, AttrValue.ToSimpleVariant);
   {$ELSE}
+  {$IFDEF DEBUG}
+  gLog.AddTime('Set '+AttrName+' to '+AttrValue.AsString);
+  {$ENDIF}
   inherited SetAttribute(AttrName, AttrValue.AsString);
   {$ENDIF}
 end;
@@ -406,7 +431,7 @@ end;
 
 function TKMSimpleVariant.AsInteger: Integer;
 begin
-  writeln('Cast '+fValue+' as integer');
+  //writeln('Cast '+fValue+' as integer');
   if fValue = '' then
     Result := 0
   else
