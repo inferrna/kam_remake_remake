@@ -105,7 +105,9 @@ uses
 
 { TKMXMLDocument }
 constructor TKMXmlDocument.Create(const aRoot: string = 'Root');
-var tel: TDOMElement;
+var
+  tel: TDOMElement;
+  Ptr: ^TKMXmlNode;
 begin
   inherited Create;
 
@@ -122,8 +124,9 @@ begin
     //fRoot := TKMXmlNode.create(fDocument);
     //fRoot.appendChild(fDocument.CreateElement(aRoot));
     //fDocument.AppendChild(fRoot);
-    fRoot := fDocument.CreateElement(aRoot) as TKMXmlNode;
-    fRoot.appendChild(fDocument.CreateElement(aRoot));
+    tel := fDocument.CreateElement(aRoot);
+    Ptr := @tel;
+    fRoot := Ptr^;
     fDocument.AppendChild(fRoot);
   end;
   {$ENDIF}
@@ -225,17 +228,18 @@ end;
 
 { TKMXmlNode }
 function TKMXmlNode.AddChild(const Name: String): TKMXmlNode;
-var el: TKMXmlNode;
+var
+  tel: TDOMNode;
+  Ptr: ^TKMXmlNode;
+  txml: TKMXmlNode;
 begin
   {$IFDEF USE_SIMPLE_XML}
   Result := TKMXmlNode(inherited AddChild(Name));
   {$ELSE}
-    //fRoot := TKMXmlNode.create(fDocument);
-    //fRoot.appendChild(fDocument.CreateElement(aRoot));
-    //fDocument.AppendChild(fRoot);
-  el := TKMXmlNode.create(FOwnerDocument);
-  el.appendChild(FOwnerDocument.CreateElement(Name));
-  Result := TKMXmlNode(self.appendChild(el));
+  tel := self.AppendChild(FOwnerDocument.CreateElement(Name));
+  Ptr := @tel;
+  txml := Ptr^;
+  Result := TKMXmlNode(txml);
   {$ENDIF}
 end;
 
@@ -271,11 +275,12 @@ var i : Integer;
 begin
   {$IFDEF DEBUG}
   Assert(self <> nil);
-  Assert(ChildNodes <> nil, 'ChildNodes is nil');
   {$ENDIF}
   {$IFDEF USE_SIMPLE_XML}
   Result := inherited HasChild(Name);
   {$ELSE}
+  if ChildNodes <> nil then
+    Result := False;
   for i := 0 to ChildsCount-1 do
   begin
     {$IFDEF DEBUG}
@@ -303,6 +308,8 @@ begin
   {$IFDEF USE_SIMPLE_XML}
   sv := inherited GetAttr(AttrName);
   Result.fValue := sv.AsString;
+  {$ELSE}
+  Result.fValue := inherited GetAttribute(AttrName);
   {$ENDIF}
 end;
 
@@ -311,6 +318,8 @@ procedure TKMXmlNode.SetAttrib(const AttrName: String; const AttrValue: TKMSimpl
 begin
   {$IFDEF USE_SIMPLE_XML}
   inherited SetAttr(AttrName, AttrValue.ToSimpleVariant);
+  {$ELSE}
+  inherited SetAttribute(AttrName, AttrValue.AsString);
   {$ENDIF}
 end;
 
@@ -366,7 +375,7 @@ begin
   except}
     try
       v := fValue;
-      {$IFDEF USE_SIMPLE_XML}
+      {$IFDEF WDC}
       Result := VarToDateTime(v);
       {$ELSE}
       Result := StrToDateTime(fValue);
@@ -444,7 +453,7 @@ var
   str: string;
   fs: TFormatSettings;
 begin
-  {$IFDEF USE_SIMPLE_XML}
+  {$IFDEF WDC}
   fs := TFormatSettings.Create;
   {$ENDIF}
   fs.DecimalSeparator := '.';
