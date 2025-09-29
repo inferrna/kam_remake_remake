@@ -38,8 +38,8 @@ var
 implementation
 uses
   SysUtils, INIfiles, Math,
-  KM_Defaults;
-
+  KM_Defaults,
+  KM_Log;
 
 { TKMGameAppSettings }
 constructor TKMGameAppSettings.Create(aScreenWidth, aScreenHeight: Integer);
@@ -79,7 +79,7 @@ end;
 procedure TKMGameAppSettings.SaveToFile(const aPath: UnicodeString);
 begin
   if SKIP_SETTINGS_SAVE then Exit;
-
+  gLog.AddTime('Called TKMGameAppSettings.SaveToFile with SKIP_SETTINGS_SAVE = ' + BoolToStr(SKIP_SETTINGS_SAVE));
   gMainSettings.SaveToXML;
   gGameSettings.SaveToXML;
   gKeySettings.SaveToXML;

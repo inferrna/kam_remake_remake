@@ -1,25 +1,27 @@
 unit KM_IoXML;
 {$I KaM_Remake.inc}
 interface
-uses
-  Classes, SysUtils, LazLogger
 
-  {$IFDEF WDC}
+{$IFDEF WDC}
+{$DEFINE USE_SIMLE_XML}
+{$ENDIF}
+uses
+  Classes, SysUtils, LazLogger, KM_Log
+
+  {$IFDEF USE_SIMLE_XML}
   , Xml.VerySimple // (Attributes can be only 'string', which is not convenient)
-  {$ENDIF}
-  {$IFDEF FPC}
-  , laz2_DOM, laz2_XMLRead, laz2_XMLWrite
+  {$ELSE}
+  , xmlreader, laz2_DOM, laz2_XMLRead, laz2_XMLWrite
   {$ENDIF}
   ;
 
   // We might try NativeXML (compatible with Android and iOS ?)
 
 type
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMLE_XML}
   TKMXmlDomDocument = TXmlVerySimple;
 //  TKMXmlAttribute = Xml.VerySimple.TXmlAttribute;
-  {$ENDIF}
-  {$IFDEF FPC}
+  {$ELSE}
   TKMXmlDomDocument = TXMLDocument;
   {$ENDIF}
 
@@ -29,7 +31,7 @@ type
   private
     // Internal representation is always a string
     fValue: string;
-    {$IFDEF WDC}
+    {$IFDEF USE_SIMLE_XML}
     function ToSimpleVariant: TSimpleVariant;
     {$ENDIF}
   public
@@ -74,14 +76,11 @@ type
   end;
 
 
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   TKMXmlNode = class(Xml.VerySimple.TXmlNode)
-  {$ENDIF}
-  {$IFDEF FPC}
+  {$ELSE}
   TKMXmlNode = class(TDOMElement)
   {$ENDIF}
-  private
-
   protected
     function GetAttrib(const AttrName: String): TKMSimpleVariant;
     procedure SetAttrib(const AttrName: String; const AttrValue: TKMSimpleVariant);
@@ -89,7 +88,7 @@ type
     function GetChild(const aIndex: Integer): TKMXmlNode;
   public
     function AddChild(const Name: String): TKMXmlNode; {$IFDEF WDC}reintroduce;{$ENDIF}
-    function FindNode(const Name: String): TKMXmlNode; {$IFDEF FPC}reintroduce;{$ENDIF}
+    function FindNode(const Name: String): TKMXmlNode; {$IFNDEF  USE_SIMPLE_XML}reintroduce;{$ENDIF}
     function AddOrFindChild(const aChildNodeName: string): TKMXmlNode;
     function HasAttribute(const AttrName: String): Boolean; {$IFDEF WDC}reintroduce;{$ENDIF}
     function HasChild(const Name: String): Boolean; {$IFDEF WDC}reintroduce;{$ENDIF}
@@ -106,6 +105,7 @@ uses
 
 { TKMXMLDocument }
 constructor TKMXmlDocument.Create(const aRoot: string = 'Root');
+var tel: TDOMElement;
 begin
   inherited Create;
 
@@ -113,15 +113,16 @@ begin
 
   ApplyDefaultSettings;
 
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   if aRoot <> '' then
     fRoot := TKMXmlNode(fDocument.AddChild(aRoot));
-  {$ENDIF}
-
-  {$IFDEF FPC}
+  {$ELSE}
   if aRoot <> '' then
   begin
-    fRoot := TKMXmlNode.create(fDocument);
+    //fRoot := TKMXmlNode.create(fDocument);
+    //fRoot.appendChild(fDocument.CreateElement(aRoot));
+    //fDocument.AppendChild(fRoot);
+    fRoot := fDocument.CreateElement(aRoot) as TKMXmlNode;
     fRoot.appendChild(fDocument.CreateElement(aRoot));
     fDocument.AppendChild(fRoot);
   end;
@@ -139,12 +140,11 @@ end;
 
 procedure TKMXmlDocument.ApplyDefaultSettings;
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   fDocument.Version := '1.0';
   fDocument.Encoding := 'UTF-8';
   fDocument.Options := [doNodeAutoIndent]; // Do not write BOM
-  {$ENDIF}
-  {$IFDEF FPC}
+  {$ELSE}
   fDocument.XMLVersion := '1.0';
   {$ENDIF}
 end;
@@ -152,39 +152,31 @@ end;
 
 procedure TKMXmlDocument.LoadFromFile(const aFilename: string; aRoot: string  = 'Root'; aReadOnly: Boolean = True);
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
     // When no file exists we create an empty XML and let caller handle it
     // e.g. by reading default values from it
     if FileExists(aFilename) then
-      fDocument.LoadFromFile(aFilename);
-  {$ENDIF}
-  {$IFDEF FPC}
-    // When no file exists we create an empty XML and let caller handle it
-    // e.g. by reading default values from it
-    if FileExists(aFilename) then
-      ReadXMLFile(fDocument, aFilename);
-  {$ENDIF}
-
-  // Set document Version and Encoding again
-  // F.e. after loading empty file Version and Encoding properties are cleared
-  ApplyDefaultSettings;
-
-  {$IFDEF WDC}
-    fRoot := TKMXmlNode(fDocument.ChildNodes.FindNode(aRoot));
-
-    // Create root if it's missing, so that XML could be processed and default parameters created
-    if fRoot = nil then
-      fRoot := TKMXmlNode(fDocument.ChildNodes.Add(aRoot));
-  {$ENDIF}
-  {$IFDEF FPC}
-    cNode := fDocument.DocumentElement.FindNode(aRoot);
-    fRoot := TKMXmlNode.Create(fDocument);
-    // Create root if it's missing, so that XML could be processed and default parameters created
-    if cNode <> nil then
     begin
-      fRoot.AppendChild(cNode);
+      fDocument.LoadFromFile(aFilename);
+      fRoot := TKMXmlNode(fDocument.ChildNodes.FindNode(aRoot));
+      ApplyDefaultSettings;
+      // Create root if it's missing, so that XML could be processed and default parameters created
+      if fRoot = nil then
+        fRoot := TKMXmlNode(fDocument.ChildNodes.Add(aRoot));
     end;
-    //fDocument.AppendChild(fRoot);
+  {$ELSE}
+    // When no file exists we create an empty XML and let caller handle it
+    // e.g. by reading default values from it
+    if FileExists(aFilename) then
+    begin
+      ReadXMLFile(fDocument, aFilename);
+      ApplyDefaultSettings;
+      cNode := fDocument.DocumentElement.FindNode(aRoot);
+      fRoot := TKMXmlNode.Create(fDocument);
+      // Create root if it's missing, so that XML could be processed and default parameters created
+      if cNode <> nil then
+         fRoot.AppendChild(cNode);
+    end;
   {$ENDIF}
 end;
 
@@ -192,52 +184,68 @@ end;
 procedure TKMXmlDocument.SaveToFile(const aFilename: string; aCompressed: Boolean = False);
 begin
   ForceDirectories(ExtractFilePath(ExpandFileName(aFilename)));
-
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   fDocument.SaveToFile(aFilename);
-  {$ENDIF}
-  {$IFDEF FPC}
-  //if fDocument <> nil then
-  //  WriteXMLFile(fDocument, aFilename);
+  {$ELSE}
+  if fDocument <> nil then
+  begin
+     //fDocument.ReplaceChild(Root, fDocument.GetChildNodes.Item[0]);
+     gLog.AddTime(Format('Try to save to ''%s''', [aFilename]));
+     gLog.AddTime('Tree with ' + IntToStr(Root.GetChildNodes.Count) + ' children');
+     gLog.AddTime('Tree with ' + IntToStr(Root.GetChildNodes.Item[0].GetChildNodes.Count) + ' children');
+     WriteXMLFile(fDocument, aFilename);
+     gLog.AddTime(Format('saved to ''%s''', [aFilename]));
+  end;
   {$ENDIF}
 end;
 
 
 function TKMXmlDocument.GetText: String;
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   Result := fDocument.Xml;
-  {$ENDIF}
-  {$IFDEF FPC}
-  // Not implemented
+  {$ELSE}
+  Result := fDocument.ToString;
   {$ENDIF}
 end;
 
-
 procedure TKMXmlDocument.SetText(const aText: string);
+{$IFNDEF USE_SIMPLE_XML}
+var S: TStringStream;
+{$ENDIF}
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   fDocument.Xml := aText;
-  {$ENDIF}
-  {$IFDEF FPC}
-  // Not implemented
+  {$ELSE}
+  S := TStringStream.Create(aText);
+  ReadXMLFile(fDocument, S);
   {$ENDIF}
 end;
 
 
 { TKMXmlNode }
 function TKMXmlNode.AddChild(const Name: String): TKMXmlNode;
+var el: TKMXmlNode;
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   Result := TKMXmlNode(inherited AddChild(Name));
+  {$ELSE}
+    //fRoot := TKMXmlNode.create(fDocument);
+    //fRoot.appendChild(fDocument.CreateElement(aRoot));
+    //fDocument.AppendChild(fRoot);
+  el := TKMXmlNode.create(FOwnerDocument);
+  el.appendChild(FOwnerDocument.CreateElement(Name));
+  Result := TKMXmlNode(self.appendChild(el));
   {$ENDIF}
 end;
 
 
 function TKMXmlNode.FindNode(const Name: String): TKMXmlNode;
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   Result := TKMXmlNode(ChildNodes.Find(Name));
+  {$ELSE}
+  Result := TKMXmlNode(FOwnerDocument.FindNode(Name));
   {$ENDIF}
 end;
 
@@ -254,27 +262,45 @@ end;
 
 function TKMXmlNode.HasAttribute(const AttrName: String): Boolean;
 begin
-  {$IFDEF WDC}
   Result := inherited HasAttribute(AttrName);
-  {$ENDIF}
 end;
 
 
 function TKMXmlNode.HasChild(const Name: String): Boolean;
+var i : Integer;
 begin
-  {$IFDEF WDC}
+  {$IFDEF DEBUG}
+  Assert(self <> nil);
+  Assert(ChildNodes <> nil, 'ChildNodes is nil');
+  {$ENDIF}
+  {$IFDEF USE_SIMPLE_XML}
   Result := inherited HasChild(Name);
+  {$ELSE}
+  for i := 0 to ChildsCount-1 do
+  begin
+    {$IFDEF DEBUG}
+    gLog.AddTime('Try node ' + IntToStr(i) + ' of ' + IntToStr(ChildsCount));
+    Assert(ChildNodes[i] <> nil, 'Node '+IntToStr(i)+' is nil');
+    {$ENDIF}
+    if ChildNodes[i].NodeName = Name then
+      Result := True
+    {$IFDEF DEBUG}
+    else
+      gLog.AddTime(ChildNodes[i].NodeName + ' is not equal ' + Name);
+    {$ENDIF}
+  end;
+  Result := False;
   {$ENDIF}
 end;
 
 
 function TKMXmlNode.GetAttrib(const AttrName: String): TKMSimpleVariant;
-{$IFDEF WDC}
+{$IFDEF USE_SIMPLE_XML}
 var
   sv: TSimpleVariant;
 {$ENDIF}
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   sv := inherited GetAttr(AttrName);
   Result.fValue := sv.AsString;
   {$ENDIF}
@@ -283,7 +309,7 @@ end;
 
 procedure TKMXmlNode.SetAttrib(const AttrName: String; const AttrValue: TKMSimpleVariant);
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   inherited SetAttr(AttrName, AttrValue.ToSimpleVariant);
   {$ENDIF}
 end;
@@ -291,22 +317,18 @@ end;
 
 function TKMXmlNode.GetChildsCount: Integer;
 begin
-  {$IFDEF WDC}
   Result := ChildNodes.Count;
-  {$ENDIF}
 end;
 
 
 function TKMXmlNode.GetChild(const aIndex: Integer): TKMXmlNode;
 begin
-  {$IFDEF WDC}
   Result := TKMXmlNode(ChildNodes[aIndex]);
-  {$ENDIF}
 end;
 
 
 { ToSimpleVariant}
-{$IFDEF WDC}
+{$IFDEF USE_SIMPLE_XML}
 function TKMSimpleVariant.ToSimpleVariant: TSimpleVariant;
 begin
   Result := TSimpleVariant.New(fValue);
@@ -344,10 +366,9 @@ begin
   except}
     try
       v := fValue;
-      {$IFDEF WDC}
+      {$IFDEF USE_SIMPLE_XML}
       Result := VarToDateTime(v);
-      {$ENDIF}
-      {$IFDEF FPC}
+      {$ELSE}
       Result := StrToDateTime(fValue);
       {$ENDIF}
     except
@@ -423,7 +444,7 @@ var
   str: string;
   fs: TFormatSettings;
 begin
-  {$IFDEF WDC}
+  {$IFDEF USE_SIMPLE_XML}
   fs := TFormatSettings.Create;
   {$ENDIF}
   fs.DecimalSeparator := '.';

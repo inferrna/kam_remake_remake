@@ -136,7 +136,6 @@ var
 begin
   if Self = nil then Exit;
   if BLOCK_FILE_WRITE or SKIP_SETTINGS_SAVE then Exit;
-
   inherited;
 
   nMainSettings := Root.AddOrFindChild('Main');
@@ -165,6 +164,7 @@ begin
   // Misc
   nMisc := nMainSettings.AddOrFindChild('Misc');
     nMisc.Attributes['NoRenderMaxTime'] := fNoRenderMaxTime;
+
 end;
 
 

@@ -8,7 +8,7 @@ uses
   KM_WareDistribution, KM_MapTypes,
   KM_Defaults, KM_CommonTypes, KM_CommonClasses,
 
-  KM_IoXML, KM_InterfaceTypes,
+  KM_IoXML, KM_Log, KM_InterfaceTypes,
   KM_GameAppSettingsPart;
 
 
@@ -562,7 +562,7 @@ var
 begin
   if Self = nil then Exit;
   if BLOCK_FILE_WRITE then Exit;
-
+  gLog.AddTime('Called TKMGameSettings.SaveToXML with BLOCK_FILE_WRITE = ' + BoolToStr(BLOCK_FILE_WRITE));
   inherited;
 
   nGameSettings := Root.AddOrFindChild('Game');
@@ -717,6 +717,7 @@ begin
 
   if INI_HITPOINT_RESTORE then
     nDebug.Attributes['HitPointRestorePace'] := HITPOINT_RESTORE_PACE;
+
 end;
 
 

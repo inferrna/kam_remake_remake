@@ -106,9 +106,9 @@ begin
   gLog.AddNoTime(GetStackTrace(20), False);
 
   // Try to save several times, in case file is blocked (by antivirus f.e.)
-  if not TryExecuteMethod(path, 'SaveToFile', errorStr, SaveToFile) then
-    raise Exception.Create('Can''t save settings to file ''' + path + ''': ' + errorStr);
-
+  //if not TryExecuteMethod(path, 'SaveToFile', errorStr, SaveToFile) then
+  //  raise Exception.Create('Can''t save settings to file ''' + path + ''': ' + errorStr);
+  SaveToFile(path);
   gLog.AddTime(Format('''%s'' was successfully saved to ''%s''', [GetSettingsName, path]));
 end;
 

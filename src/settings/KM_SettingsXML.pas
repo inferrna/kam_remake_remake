@@ -12,6 +12,7 @@ type
     fXML: TKMXmlDocument;
   protected
     fRoot: TKMXmlNode;
+    //property fRoot: TKMXmlNode write fXML.fRoot;
     procedure LoadFromFile(const aPath: string); override;
     procedure SaveToFile(const aPath: UnicodeString); override;
   public
@@ -32,8 +33,9 @@ uses
 { TKMSettingsXML }
 constructor TKMSettingsXML.Create;
 begin
+  gLog.AddTime('Called TKMSettingsXML.Create');
   fXML := TKMXmlDocument.Create;
-
+  //fRoot := fXML.Root; //TODO: create empty XML of nstart if no file found
   // Prefer to store XML settings in the shared folder
   inherited Create(slShared);
 end;
@@ -50,7 +52,7 @@ end;
 procedure TKMSettingsXML.LoadFromFile(const aPath: string);
 begin
   inherited;
-
+  gLog.AddTime('Called TKMSettingsXML.LoadFromFile '+aPath);
   fXML.LoadFromFile(aPath);
   fRoot := fXML.Root;
 end;
@@ -59,7 +61,6 @@ end;
 procedure TKMSettingsXML.SaveToFile(const aPath: UnicodeString);
 begin
   inherited;
-
   fXML.SaveToFile(aPath);
 end;
 
