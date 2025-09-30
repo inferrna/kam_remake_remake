@@ -2,7 +2,7 @@ unit KM_GameSettings;
 {$I KaM_Remake.inc}
 interface
 uses
-  Classes,
+  Classes, Variants,
   {$IFDEF FPC}Forms,{$ENDIF}   //Lazarus do not know UITypes
   {$IFDEF WDC}UITypes,{$ENDIF} //We use settings in console modules
   KM_WareDistribution, KM_MapTypes,
@@ -380,6 +380,8 @@ begin
   // Music
   nMusic := nGameSettings.AddOrFindChild('Music');
     SFX.MusicEnabled := nMusic.Attributes['Enabled'].AsBoolean(True);
+    gLog.AddTime('Found  SFX.MusicEnabled = ' + nMusic.Attributes['enabled'].AsString);
+    gLog.AddTime('Loaded SFX.MusicEnabled = ' + BoolToStr(SFX.MusicEnabled));
     SFX.MusicVolume  := nMusic.Attributes['Volume'].AsFloat(0.5);
     SFX.ShuffleOn    := nMusic.Attributes['Shuffle'].AsBoolean(False);
 
@@ -449,7 +451,7 @@ begin
       fShowGameSpeed   := nGameMisc.Attributes['ShowGameSpeed'].AsBoolean(False);
       fDayGamesCount   := nGameMisc.Attributes['DayGamesCount'].AsInteger(0);
       if nGameMisc.HasAttribute('LastDayGamePlayed') and not(nGameMisc.Attributes['LastDayGamePlayed'].AsString() ='') then
-        fLastDayGamePlayed  := nGameMisc.Attributes['LastDayGamePlayed'].AsDateTime
+        fLastDayGamePlayed  := StrToDateTime(nGameMisc.Attributes['LastDayGamePlayed'].AsString)
       else
         fLastDayGamePlayed  := DATE_TIME_ZERO;
 
@@ -562,7 +564,6 @@ var
 begin
   if Self = nil then Exit;
   if BLOCK_FILE_WRITE then Exit;
-  gLog.AddTime('Called TKMGameSettings.SaveToXML with BLOCK_FILE_WRITE = ' + BoolToStr(BLOCK_FILE_WRITE));
   inherited;
 
   nGameSettings := Root.AddOrFindChild('Game');
@@ -642,7 +643,7 @@ begin
       nGameMisc.Attributes['ShowGameTime']      := fShowGameTime;
       nGameMisc.Attributes['ShowGameSpeed']     := fShowGameSpeed;
       nGameMisc.Attributes['DayGamesCount']     := fDayGamesCount;
-      nGameMisc.Attributes['LastDayGamePlayed'] := fLastDayGamePlayed;
+      nGameMisc.Attributes['LastDayGamePlayed'] := DateTimeToStr(fLastDayGamePlayed);
 
     // Tweaks
     nGameTweaks := nGameCommon.AddOrFindChild('Tweaks');

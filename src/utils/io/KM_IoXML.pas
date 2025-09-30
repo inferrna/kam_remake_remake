@@ -121,9 +121,6 @@ begin
   {$ELSE}
   if aRoot <> '' then
   begin
-    //fRoot := TKMXmlNode.create(fDocument);
-    //fRoot.appendChild(fDocument.CreateElement(aRoot));
-    //fDocument.AppendChild(fRoot);
     tel := fDocument.CreateElement(aRoot);
     Ptr := @tel;
     fRoot := Ptr^;
@@ -154,6 +151,12 @@ end;
 
 
 procedure TKMXmlDocument.LoadFromFile(const aFilename: string; aRoot: string  = 'Root'; aReadOnly: Boolean = True);
+var
+  fc: TDOMNode;
+  doc: TXMLDocument;
+  Ptr: ^TKMXmlDomDocument;
+  node: TDOMNode;
+  root: ^TKMXMLNode;
 begin
   {$IFDEF USE_SIMPLE_XML}
     // When no file exists we create an empty XML and let caller handle it
@@ -172,13 +175,26 @@ begin
     // e.g. by reading default values from it
     if FileExists(aFilename) then
     begin
-      ReadXMLFile(fDocument, aFilename);
+      repeat
+      begin
+        fc := fDocument.FirstChild;
+        fDocument.RemoveChild(fc);
+      end;
+      until fc <> nil;
+
+      doc := TXMLDocument.Create;
+      ReadXMLFile(doc, aFilename);
+
+      Ptr := @doc;
+      fDocument := Ptr^;
+
+      node := fDocument.FirstChild;
+      root := @node;
+      fRoot := root^;
+
+
+      gLog.AddTime('Done read file ' + aFilename);
       ApplyDefaultSettings;
-      cNode := fDocument.DocumentElement.FindNode(aRoot);
-      fRoot := TKMXmlNode.Create(fDocument);
-      // Create root if it's missing, so that XML could be processed and default parameters created
-      if cNode <> nil then
-         fRoot.AppendChild(cNode);
     end;
   {$ENDIF}
 end;
@@ -192,10 +208,6 @@ begin
   {$ELSE}
   if fDocument <> nil then
   begin
-     //fDocument.ReplaceChild(Root, fDocument.GetChildNodes.Item[0]);
-     gLog.AddTime(Format('Try to save to ''%s''', [aFilename]));
-     gLog.AddTime('Tree with ' + IntToStr(Root.GetChildNodes.Count) + ' children');
-     gLog.AddTime('Tree with ' + IntToStr(Root.GetChildNodes.Item[0].GetChildNodes.Count) + ' children');
      WriteXMLFile(fDocument, aFilename);
      gLog.AddTime(Format('saved to ''%s''', [aFilename]));
   end;
@@ -269,13 +281,15 @@ function TKMXmlNode.AddOrFindChild(const aChildNodeName: string): TKMXmlNode;
 begin
   if not HasChild(aChildNodeName) then
   begin
+    gLog.AddTime('Create child node ' + aChildNodeName);
     Result := AddChild(aChildNodeName);
     {$IFDEF DEBUG}
     Assert(Result <> nil, 'Added nil for '+aChildNodeName);
-   {$ENDIF}
+    {$ENDIF}
   end
   else
   begin
+    gLog.AddTime('Found child node ' + aChildNodeName);
     Result := FindNode(aChildNodeName);
     {$IFDEF DEBUG}
     Assert(Result <> nil, 'Found nil for '+aChildNodeName);
@@ -308,14 +322,7 @@ begin
     {$ENDIF}
     Result := ChildNodes[i].NodeName = Name;
     if Result then
-    begin
-      gLog.AddTime('Found ' + Name);
       Break;
-    end;
-    //{$IFDEF DEBUG}
-    //else
-    //  gLog.AddTime(IntToStr(i)+' '+ChildNodes[i].NodeName + ' is not equal ' + Name);
-    //{$ENDIF}
   end;
   {$ENDIF}
 end;
@@ -400,11 +407,7 @@ begin
   except}
     try
       v := fValue;
-      {$IFDEF WDC}
-      Result := VarToDateTime(v);
-      {$ELSE}
-      Result := StrToDateTime(fValue);
-      {$ENDIF}
+      Result := StrToDateTime(v);
     except
       Result := 0;
     end;
