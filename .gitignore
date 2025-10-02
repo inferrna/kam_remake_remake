@@ -88,7 +88,8 @@ KaM Remake Settings.xml
 !timer.exe
 
 screenshots/
-
+*.lfm
+*.dfm
 Sprites/*.png
 Sprites/*.txt
 Modding graphics/*.png
@@ -98,7 +99,8 @@ Modding graphics/*.txt
 /_Campaigns/
 /_Tutorials/
 /TM_unused.txt
-
+**/backup
+link*.res
 /Profiling/
 /KaM_Remake_exe_Results/
 KaM_Remake_exe.aqt
