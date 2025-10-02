@@ -410,17 +410,16 @@ type
 
     procedure FindObjByUID(aUID: Integer);
     function AllowFindObjByUID: Boolean;
-    {$IFDEF MSWindows}
+    procedure ShowInCustomWindow;
+    procedure ShowInDefaultWindow;
     function GetWindowParams: TKMWindowParamsRecord;
+    {$IFDEF MSWindows}
     procedure WMSysCommand(var Msg: TWMSysCommand); message WM_SYSCOMMAND;
     procedure WMExitSizeMove(var Msg: TMessage) ; message WM_EXITSIZEMOVE;
     procedure WMAppCommand(var Msg: TMessage); message WM_APPCOMMAND;
     procedure WMMouseWheel(var Msg: TMessage); message WM_MOUSEWHEEL;
     procedure WMMenuSelect(var Msg: TWMMenuSelect); message WM_MENUSELECT;
     procedure DoMessage(var Msg: TMsg; var Handled: Boolean);
-
-    procedure ShowInCustomWindow;
-    procedure ShowInDefaultWindow;
   protected
     procedure WndProc(var Message: TMessage); override; //
     {$ENDIF}
@@ -1920,53 +1919,53 @@ end;
 procedure TFormMain.ShowInWindow;
 begin
   if gMainSettings.WindowParams.NeedResetToDefaults then
-    // ShowInDefaultWindow
+    ShowInDefaultWindow
   else
-    // ShowInCustomWindow;
+    ShowInCustomWindow;
 end;
 
 
-// procedure TFormMain.ShowInCustomWindow;
-// begin
-//   BorderStyle  := bsSizeable;
-//   WindowState  := wsNormal;
+ procedure TFormMain.ShowInCustomWindow;
+ begin
+   BorderStyle  := bsSizeable;
+   WindowState  := wsNormal;
 
-//   // Here we set window Width/Height and State
-//   // Left and Top will set on FormShow, so omit setting them here
-//   Position     := gMainSettings.WindowParams.Position;
-//   ClientWidth  := gMainSettings.WindowParams.Width;
-//   ClientHeight := gMainSettings.WindowParams.Height;
-//   Left := gMainSettings.WindowParams.Left;
-//   Top := gMainSettings.WindowParams.Top;
-//   WindowState  := gMainSettings.WindowParams.State;
+   // Here we set window Width/Height and State
+   // Left and Top will set on FormShow, so omit setting them here
+   Position     := gMainSettings.WindowParams.Position;
+   ClientWidth  := gMainSettings.WindowParams.Width;
+   ClientHeight := gMainSettings.WindowParams.Height;
+   Left := gMainSettings.WindowParams.Left;
+   Top := gMainSettings.WindowParams.Top;
+   WindowState  := gMainSettings.WindowParams.State;
 
-//   gLog.AddTime('Set window params to: '
-//               + gMainSettings.WindowParams.ObjToString);
+   gLog.AddTime('Set window params to: '
+               + gMainSettings.WindowParams.ObjToString);
 
-//   //Make sure Panel is properly aligned
-//   RenderArea.Align := alClient;
-// end;
+   //Make sure Panel is properly aligned
+   RenderArea.Align := alClient;
+ end;
 
 
-// procedure TFormMain.ShowInDefaultWindow;
-// begin
-//   BorderStyle  := bsSizeable;
-//   WindowState  := wsNormal;
+ procedure TFormMain.ShowInDefaultWindow;
+ begin
+   BorderStyle  := bsSizeable;
+   WindowState  := wsNormal;
 
-//   Position := poScreenCenter;
-//   ClientWidth  := MENU_DESIGN_X;
-//   ClientHeight := MENU_DESIGN_Y;
-//   // We've set default window params, so update them
-//   gMain.UpdateWindowParams(GetWindowParams);
-//   // Unset NeedResetToDefaults flag
-//   gMainSettings.WindowParams.NeedResetToDefaults := False;
+   Position := poScreenCenter;
+   ClientWidth  := MENU_DESIGN_X;
+   ClientHeight := MENU_DESIGN_Y;
+   // We've set default window params, so update them
+   gMain.UpdateWindowParams(GetWindowParams);
+   // Unset NeedResetToDefaults flag
+   gMainSettings.WindowParams.NeedResetToDefaults := False;
 
-//   gLog.AddTime(Format('Set window params to: Position = poScreenCenter Width = %d, Height = %d',
-//                       [gMainSettings.WindowParams.Width, gMainSettings.WindowParams.Height]));
+   gLog.AddTime(Format('Set window params to: Position = poScreenCenter Width = %d, Height = %d',
+                       [gMainSettings.WindowParams.Width, gMainSettings.WindowParams.Height]));
 
-//   //Make sure Panel is properly aligned
-//   RenderArea.Align := alClient;
-// end;
+   //Make sure Panel is properly aligned
+   RenderArea.Align := alClient;
+ end;
 
 
 //function TFormMain.ConfirmExport: Boolean;
@@ -2022,79 +2021,87 @@ end;
 
 
 // // Return current window params
-// function TFormMain.GetWindowParams: TKMWindowParamsRecord;
-//   // FindTaskBar returns the Task Bar's position, and fills in
-//   // ARect with the current bounding rectangle.
-//   function FindTaskBar(var aRect: TRect): Integer;
-//   {$IFDEF MSWINDOWS}
-//   var	AppData: TAppBarData;
-//   {$ENDIF}
-//   begin
-//     Result := -1;
-//     {$IFDEF MSWINDOWS}
-//     // 'Shell_TrayWnd' is the name of the task bar's window
-//     AppData.Hwnd := FindWindow('Shell_TrayWnd', nil);
-//     if AppData.Hwnd <> 0 then
-//     begin
-//       AppData.cbSize := SizeOf(TAppBarData);
-//       // SHAppBarMessage will return False (0) when an error happens.
-//       if SHAppBarMessage(ABM_GETTASKBARPOS,
-//         {$IFDEF FPC}@AppData{$ENDIF}
-//         {$IFDEF WDC}AppData{$ENDIF}
-//         ) <> 0 then
-//       begin
-//         Result := AppData.uEdge;
-//         aRect := AppData.rc;
-//       end;
-//     end;
-//     {$ENDIF}
-//   end;
-// var
-//   wp: TWindowPlacement;
-//   bordersWidth, bordersHeight: SmallInt;
-//   rect: TRect;
-// begin
-//   Result.State := WindowState;
-//   Result.Position := Position;
-//   case WindowState of
-//     wsMinimized:  ;
-//     wsNormal:     begin
-//                     Result.Width := ClientWidth;
-//                     Result.Height := ClientHeight;
-//                     Result.Left := Left;
-//                     Result.Top := Top;
-//                   end;
-//     wsMaximized:  begin
-//                     wp.length := SizeOf(TWindowPlacement);
-//                     GetWindowPlacement(Handle, @wp);
+ function TFormMain.GetWindowParams: TKMWindowParamsRecord;
+   // FindTaskBar returns the Task Bar's position, and fills in
+   // ARect with the current bounding rectangle.
+   function FindTaskBar(var aRect: TRect): Integer;
+   {$IFDEF MSWINDOWS}
+   var	AppData: TAppBarData;
+   {$ENDIF}
+   begin
+     Result := -1;
+     {$IFDEF MSWINDOWS}
+     // 'Shell_TrayWnd' is the name of the task bar's window
+     AppData.Hwnd := FindWindow('Shell_TrayWnd', nil);
+     if AppData.Hwnd <> 0 then
+     begin
+       AppData.cbSize := SizeOf(TAppBarData);
+       // SHAppBarMessage will return False (0) when an error happens.
+       if SHAppBarMessage(ABM_GETTASKBARPOS,
+         {$IFDEF FPC}@AppData{$ENDIF}
+         {$IFDEF WDC}AppData{$ENDIF}
+         ) <> 0 then
+       begin
+         Result := AppData.uEdge;
+         aRect := AppData.rc;
+       end;
+     end;
+     {$ENDIF}
+   end;
+ var
+ {$IFDEF MSWINDOWS}
+   wp: TWindowPlacement;
+ {$ENDIF}
+   bordersWidth, bordersHeight: SmallInt;
+   rect: TRect;
+ begin
+   Result.State := WindowState;
+   Result.Position := Position;
+   case WindowState of
+     wsNormal
+     {$IFNDEF MSWINDOWS}
+     ,wsMaximized
+     {$ENDIF}
+                   :begin
+                     Result.Width := ClientWidth;
+                     Result.Height := ClientHeight;
+                     Result.Left := Left;
+                     Result.Top := Top;
+                   end;
+     {$IFDEF MSWINDOWS}
+     wsMaximized:  begin
+                     wp.length := SizeOf(TWindowPlacement);
+                     GetWindowPlacement(Handle, @wp);
 
-//                     // Get current borders width/height
-//                     bordersWidth := Width - ClientWidth;
-//                     bordersHeight := Height - ClientHeight;
+                     // Get current borders width/height
+                     bordersWidth := Width - ClientWidth;
+                     bordersHeight := Height - ClientHeight;
 
-//                     // rcNormalPosition do not have ClientWidth/ClientHeight
-//                     // so we have to calc it manually via substracting borders width/height
-//                     Result.Width := wp.rcNormalPosition.Right - wp.rcNormalPosition.Left - bordersWidth;
-//                     Result.Height := wp.rcNormalPosition.Bottom - wp.rcNormalPosition.Top - bordersHeight;
+                     // rcNormalPosition do not have ClientWidth/ClientHeight
+                     // so we have to calc it manually via substracting borders width/height
+                     Result.Width := wp.rcNormalPosition.Right - wp.rcNormalPosition.Left - bordersWidth;
+                     Result.Height := wp.rcNormalPosition.Bottom - wp.rcNormalPosition.Top - bordersHeight;
 
-//                     // Adjustment of window position due to TaskBar position/size
-//                     case FindTaskBar(rect) of
-//                       ABE_LEFT: begin
-//                                   Result.Left := wp.rcNormalPosition.Left + rect.Right;
-//                                   Result.Top := wp.rcNormalPosition.Top;
-//                                 end;
-//                       ABE_TOP:  begin
-//                                   Result.Left := wp.rcNormalPosition.Left;
-//                                   Result.Top := wp.rcNormalPosition.Top + rect.Bottom;
-//                                 end
-//                       else      begin
-//                                   Result.Left := wp.rcNormalPosition.Left;
-//                                   Result.Top := wp.rcNormalPosition.Top;
-//                                 end;
-//                     end;
-//                   end;
-//   end;
-// end;
+                     // Adjustment of window position due to TaskBar position/size
+                     case FindTaskBar(rect) of
+                       ABE_LEFT: begin
+                                   Result.Left := wp.rcNormalPosition.Left + rect.Right;
+                                   Result.Top := wp.rcNormalPosition.Top;
+                                 end;
+                       ABE_TOP:  begin
+                                   Result.Left := wp.rcNormalPosition.Left;
+                                   Result.Top := wp.rcNormalPosition.Top + rect.Bottom;
+                                 end
+                       else      begin
+                                   Result.Left := wp.rcNormalPosition.Left;
+                                   Result.Top := wp.rcNormalPosition.Top;
+                                 end;
+                     end;
+
+                   end;
+     {$ENDIF}
+   end;
+ end;
 
 
 
